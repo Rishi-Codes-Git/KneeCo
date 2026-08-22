@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import AllCases from "./pages/AllCases";
 import Home from "./pages/Home";
 import HomeDashboard from "./pages/HomeDashboard";
+import NewCase from "./pages/NewCase";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -15,6 +16,7 @@ function Router() {
       <Route path={"/"} component={Home} />
       <Route path={"/home"} component={HomeDashboard} />
       <Route path={"/cases"} component={AllCases} />
+      <Route path={"/new-case"} component={NewCase} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

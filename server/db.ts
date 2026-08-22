@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { clinicianProfiles, InsertClinicianProfile, InsertUser, users } from "../drizzle/schema";
+import { clinicianProfiles, InsertClinicianProfile, InsertKneeCase, InsertUser, kneeCases, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -104,6 +104,19 @@ export async function upsertClinicianProfile(profile: InsertClinicianProfile) {
       updatedAt: new Date(),
     },
   });
+}
+
+export async function createKneeCase(kneeCase: InsertKneeCase) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available for case creation");
+  await db.insert(kneeCases).values(kneeCase);
+  return kneeCase;
+}
+
+export async function listKneeCases() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(kneeCases).orderBy(desc(kneeCases.createdAt));
 }
 
 // TODO: add feature queries here as your schema grows.

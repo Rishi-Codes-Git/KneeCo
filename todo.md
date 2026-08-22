@@ -39,3 +39,6 @@
 - [x] Verify the Dusty Rose sidebar contrast at desktop and mobile widths.
 - [x] Refine the sidebar using deep plum `#733963` for large surfaces and Dusty Rose `#C97C8D` for active navigation, account panels, and small accents.
 - [x] Verify the expanded mobile drawer’s dual-tone sidebar hierarchy and contrast.
+- [x] Build the New Case workflow with patient ID/name, age, sex, known OA status, optional lifestyle context, and MRI-only upload intake.
+- [x] Connect New Case actions to local validation and the future analysis-service pathway without claiming MRI analysis is currently validated.
+- [ ] Complete end-to-end New Case verification with a compatible MRI: file selection, successful persistence, pending-validation status, and post-submit case visibility.

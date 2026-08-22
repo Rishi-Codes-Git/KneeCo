@@ -1,10 +1,38 @@
 import { COOKIE_NAME } from "@shared/const";
 import { z } from "zod";
 import { getAnalysisServiceStatus } from "./analysisService";
-import { upsertClinicianProfile } from "./db";
+import { createKneeCase, listKneeCases, upsertClinicianProfile } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { storagePut } from "./storage";
+
+const maxScanBytes = 20 * 1024 * 1024;
+const scanInput = z.object({
+  fileName: z.string().trim().min(5).max(255).refine((value) => /\.(dcm|nii|nii\.gz)$/i.test(value), "Upload a DICOM (.dcm) or NIfTI (.nii/.nii.gz) MRI file."),
+  contentType: z.string().max(120).optional(),
+  sizeBytes: z.number().int().positive().max(maxScanBytes),
+  contentBase64: z.string().min(1).max(28_000_000),
+});
+
+const newCaseInput = z.object({
+  patientId: z.string().trim().min(2).max(80),
+  patientName: z.string().trim().min(2).max(160),
+  age: z.number().int().min(1).max(120),
+  sex: z.enum(["female", "male", "intersex", "not_recorded"]),
+  oaStatus: z.enum(["yes", "no", "unknown"]),
+  lifestyleContext: z.string().trim().max(500).optional(),
+  kneeSide: z.enum(["left", "right", "bilateral", "unknown"]),
+  scan: scanInput,
+});
+
+function makeCaseReference() {
+  return `KC-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
+}
+
+function safeFileName(fileName: string) {
+  return fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+}
 
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -44,6 +72,40 @@ export const appRouter = router({
         professionalEmail: input.professionalEmail.toLowerCase(),
       });
       return { success: true } as const;
+    }),
+  }),
+  cases: router({
+    list: publicProcedure.query(() => listKneeCases()),
+    create: publicProcedure.input(newCaseInput).mutation(async ({ input }) => {
+      const fileBuffer = Buffer.from(input.scan.contentBase64, "base64");
+      if (!fileBuffer.length || fileBuffer.length > maxScanBytes) {
+        throw new Error("The MRI file is empty or exceeds the 20 MB intake limit.");
+      }
+
+      const caseReference = makeCaseReference();
+      const storedScan = await storagePut(
+        `cases/${caseReference}/${safeFileName(input.scan.fileName)}`,
+        fileBuffer,
+        input.scan.contentType || "application/octet-stream",
+      );
+
+      await createKneeCase({
+        caseReference,
+        patientId: input.patientId,
+        patientName: input.patientName,
+        age: input.age,
+        sex: input.sex,
+        oaStatus: input.oaStatus,
+        lifestyleContext: input.lifestyleContext || null,
+        kneeSide: input.kneeSide,
+        scanFileKey: storedScan.key,
+        scanFileName: input.scan.fileName,
+        scanMimeType: input.scan.contentType || "application/octet-stream",
+        scanSizeBytes: input.scan.sizeBytes,
+        analysisStatus: "pending_validation",
+      });
+
+      return { caseReference, analysisStatus: "pending_validation" } as const;
     }),
   }),
 

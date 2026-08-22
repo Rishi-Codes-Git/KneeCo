@@ -1,0 +1,20 @@
+CREATE TABLE `kneeCases` (
+	`id` int AUTO_INCREMENT NOT NULL,
+	`caseReference` varchar(40) NOT NULL,
+	`patientId` varchar(80) NOT NULL,
+	`patientName` varchar(160) NOT NULL,
+	`age` int NOT NULL,
+	`sex` enum('female','male','intersex','not_recorded') NOT NULL,
+	`oaStatus` enum('yes','no','unknown') NOT NULL,
+	`lifestyleContext` varchar(500),
+	`kneeSide` enum('left','right','bilateral','unknown') NOT NULL,
+	`scanFileKey` varchar(1024) NOT NULL,
+	`scanFileName` varchar(255) NOT NULL,
+	`scanMimeType` varchar(120) NOT NULL,
+	`scanSizeBytes` int NOT NULL,
+	`analysisStatus` enum('pending_validation','queued','processing','ready_for_review','review_required','failed') NOT NULL DEFAULT 'pending_validation',
+	`createdAt` timestamp NOT NULL DEFAULT (now()),
+	`updatedAt` timestamp NOT NULL DEFAULT (now()) ON UPDATE CURRENT_TIMESTAMP,
+	CONSTRAINT `kneeCases_id` PRIMARY KEY(`id`),
+	CONSTRAINT `kneeCases_caseReference_unique` UNIQUE(`caseReference`)
+);
