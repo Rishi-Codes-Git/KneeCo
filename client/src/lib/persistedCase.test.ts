@@ -10,6 +10,9 @@ describe("persistedCaseToWorkspaceCase", () => {
     oaStatus: "unknown" as const,
     lifestyleContext: null,
     kneeSide: "right" as const,
+    oaModelName: null,
+    oaModelVersion: null,
+    oaClassificationJson: null,
     updatedAt: "2026-08-23T00:00:00.000Z",
   };
 
@@ -21,5 +24,16 @@ describe("persistedCaseToWorkspaceCase", () => {
   it("maps a stored pending case to intake complete", () => {
     const result = persistedCaseToWorkspaceCase({ ...baseCase, analysisStatus: "pending_validation" });
     expect(result).toMatchObject({ status: "intake_complete", statusLabel: "Intake complete" });
+  });
+
+  it("parses a stored classifier output as review-only metadata", () => {
+    const result = persistedCaseToWorkspaceCase({
+      ...baseCase,
+      analysisStatus: "ready_for_review",
+      oaModelName: "KneeCo OA MRI Classifier",
+      oaModelVersion: "oa_mri_project_2026-08-22",
+      oaClassificationJson: JSON.stringify({ stageLabel: "ModerateOA", topClassProbability: 0.6 }),
+    });
+    expect(result.oaClassifierResult).toMatchObject({ stageLabel: "ModerateOA", topClassProbability: 0.6 });
   });
 });

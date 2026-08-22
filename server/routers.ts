@@ -1,6 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { z } from "zod";
-import { getAnalysisServiceStatus, requestStudyPreflight } from "./analysisService";
+import { getAnalysisServiceStatus, requestOaClassification, requestStudyPreflight } from "./analysisService";
+import { buildCaseAnalysisPersistence } from "./caseAnalysis";
 import { createKneeCase, getKneeCaseByReference, listKneeCases, upsertClinicianProfile } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -96,6 +97,13 @@ export const appRouter = router({
         contentType: input.scan.contentType || "application/octet-stream",
         contentBase64: input.scan.contentBase64,
       });
+      const oaClassification = await requestOaClassification({
+        caseId: caseReference,
+        fileName: input.scan.fileName,
+        contentType: input.scan.contentType || "application/octet-stream",
+        contentBase64: input.scan.contentBase64,
+      });
+      const analysisPersistence = buildCaseAnalysisPersistence(preflight, oaClassification);
 
       await createKneeCase({
         caseReference,
@@ -110,10 +118,20 @@ export const appRouter = router({
         scanFileName: input.scan.fileName,
         scanMimeType: input.scan.contentType || "application/octet-stream",
         scanSizeBytes: input.scan.sizeBytes,
-        analysisStatus: preflight.analysisStatus,
+        analysisStatus: analysisPersistence.analysisStatus,
+        oaModelName: analysisPersistence.oaModelName,
+        oaModelVersion: analysisPersistence.oaModelVersion,
+        oaClassificationJson: analysisPersistence.oaClassificationJson,
+        oaClassifiedAt: analysisPersistence.oaClassifiedAt,
       });
 
-      return { caseReference, analysisStatus: preflight.analysisStatus, preflightCompleted: preflight.completed, safeMessage: preflight.safeMessage } as const;
+      return {
+        caseReference,
+        analysisStatus: analysisPersistence.analysisStatus,
+        preflightCompleted: preflight.completed,
+        oaClassificationCompleted: oaClassification.completed,
+        safeMessage: analysisPersistence.safeMessage,
+      } as const;
     }),
   }),
 

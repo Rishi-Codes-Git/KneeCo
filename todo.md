@@ -68,3 +68,8 @@
 - [x] Inspect the available MRI model materials and current FastAPI service to determine what analysis workflow can be implemented and validated.
 - [x] Implement a clinician-reviewed FastAPI image/PDF workflow for technical preflight and implant-candidate ranking without presenting unvalidated segmentation or measurement findings as clinical facts.
 - [ ] Integrate a trained, versioned knee-segmentation model only after compatible inputs, physical-spacing measurement validation, and clinician review criteria are supplied.
+- [x] Inspect OA_MRI_Project(2).zip for model weights, architecture, dependencies, inputs, outputs, and validation evidence before importing it into FastAPI.
+- [x] Integrate only the verified capabilities of the supplied OA MRI model into the FastAPI analysis workflow and clinician interface.
+- [x] Configure a controlled FastAPI model runtime and verify model endpoint plus cases.create persistence contract for a review-only OA classifier result with ready-for-review status.
+- [x] Surface persisted OA classifier review output in Knee Analysis as well as Case Detail.
+- [x] Add automated web-backend coverage for successful OA classification persistence during case creation.

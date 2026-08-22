@@ -8,11 +8,13 @@ from .contracts import (
     ImplantCandidate,
     ImplantRankingRequest,
     ImplantRankingResponse,
+    OaClassificationResponse,
     ServiceState,
     StructureState,
     StudyPreflightRequest,
     StudyPreflightResponse,
 )
+from .oa_classifier import OaClassifier
 from .pipeline import decode_study, inspect_image, rank_by_dimension_distance
 
 app = FastAPI(
@@ -66,6 +68,40 @@ def preflight_study(request: StudyPreflightRequest) -> StudyPreflightResponse:
             StructureState(structure="medial_meniscus", state="model_not_run", reason=structure_reason),
         ],
         safe_message="Technical preflight completed. No segmentation, meniscus thickness, OA assessment, or millimetre measurement has been generated. A validated model plus physical spacing/calibration is required before those outputs can be shown.",
+    )
+
+
+@app.post("/v1/studies/classify-oa", response_model=OaClassificationResponse)
+def classify_oa_stage(request: StudyPreflightRequest) -> OaClassificationResponse:
+    settings = load_settings()
+    classifier = OaClassifier(settings.oa_model_path)
+    if not classifier.available:
+        return OaClassificationResponse(
+            case_id=request.case_id,
+            status="model_unavailable",
+            model_id="KneeCo OA MRI Classifier",
+            model_version=settings.oa_model_version,
+            safe_message="The OA classifier has not been configured for this FastAPI service. No OA stage result was generated.",
+        )
+    try:
+        decoded = decode_study(
+            file_name=request.file_name,
+            content_type=request.content_type,
+            content_base64=request.content_base64,
+        )
+        result = classifier.classify(decoded.image)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+
+    return OaClassificationResponse(
+        case_id=request.case_id,
+        status="model_result_for_review",
+        model_id="KneeCo OA MRI Classifier",
+        model_version=settings.oa_model_version,
+        **result,
+        safe_message="This is a four-class image-classifier output for clinician review only. It is not a diagnosis and does not provide anatomy segmentation, meniscus thickness, physical measurements, or an implant recommendation.",
     )
 
 

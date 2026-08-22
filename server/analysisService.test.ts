@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getAnalysisServiceStatus, requestStudyPreflight } from "./analysisService";
+import { getAnalysisServiceStatus, requestOaClassification, requestStudyPreflight } from "./analysisService";
 
 describe("getAnalysisServiceStatus", () => {
   it("reports a safe unconfigured state when no service URL is provided", async () => {
@@ -67,6 +67,51 @@ describe("requestStudyPreflight", () => {
       completed: true,
       analysisStatus: "review_required",
       safeMessage: "Technical preflight completed.",
+    });
+    process.env.AI_SERVICE_URL = previousUrl;
+  });
+});
+
+describe("requestOaClassification", () => {
+  const study = {
+    caseId: "KC-OA-001",
+    fileName: "knee-study.png",
+    contentType: "image/png",
+    contentBase64: "aGVsbG8=",
+  };
+
+  it("keeps the case pending when FastAPI is not configured", async () => {
+    const previousUrl = process.env.AI_SERVICE_URL;
+    delete process.env.AI_SERVICE_URL;
+
+    const result = await requestOaClassification(study);
+
+    expect(result).toMatchObject({ completed: false, analysisStatus: "pending_validation", classification: null });
+    process.env.AI_SERVICE_URL = previousUrl;
+  });
+
+  it("stores only a review-only classifier result from FastAPI", async () => {
+    const previousUrl = process.env.AI_SERVICE_URL;
+    process.env.AI_SERVICE_URL = "http://analysis.local";
+    const fetchStub = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: "model_result_for_review",
+        model_id: "KneeCo OA MRI Classifier",
+        model_version: "oa_mri_project_2026-08-22",
+        stage_label: "ModerateOA",
+        stage_probabilities: { Normal: 0.1, MildOA: 0.2, ModerateOA: 0.6, SevereOA: 0.1 },
+        top_class_probability: 0.6,
+        safe_message: "Review only.",
+      }),
+    });
+
+    const result = await requestOaClassification(study, fetchStub as unknown as typeof fetch);
+
+    expect(result).toMatchObject({
+      completed: true,
+      analysisStatus: "ready_for_review",
+      classification: { stageLabel: "ModerateOA", topClassProbability: 0.6 },
     });
     process.env.AI_SERVICE_URL = previousUrl;
   });

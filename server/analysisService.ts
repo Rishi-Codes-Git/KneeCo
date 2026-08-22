@@ -18,6 +18,19 @@ export type StudyPreflightResult = {
   safeMessage: string;
 };
 
+export type OaClassificationResult = {
+  completed: boolean;
+  analysisStatus: "pending_validation" | "ready_for_review";
+  modelName: string | null;
+  modelVersion: string | null;
+  classification: {
+    stageLabel: "Normal" | "MildOA" | "ModerateOA" | "SevereOA";
+    stageProbabilities: Record<string, number>;
+    topClassProbability: number;
+  } | null;
+  safeMessage: string;
+};
+
 type HealthPayload = {
   state?: AnalysisServiceStatus["state"];
   safe_message?: string;
@@ -88,6 +101,66 @@ export async function requestStudyPreflight(input: StudyPreflightInput, fetchImp
       completed: false,
       analysisStatus: "pending_validation",
       safeMessage: "The FastAPI analysis service could not complete technical preflight. No anatomy or measurement result was created.",
+    };
+  }
+}
+
+export async function requestOaClassification(input: StudyPreflightInput, fetchImpl: typeof fetch = fetch): Promise<OaClassificationResult> {
+  const baseUrl = process.env.AI_SERVICE_URL;
+  if (!baseUrl) {
+    return {
+      completed: false,
+      analysisStatus: "pending_validation",
+      modelName: null,
+      modelVersion: null,
+      classification: null,
+      safeMessage: "The FastAPI OA classifier is not configured. No OA classifier result was generated.",
+    };
+  }
+
+  try {
+    const response = await fetchImpl(`${baseUrl.replace(/\/$/, "")}/v1/studies/classify-oa`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        case_id: input.caseId,
+        file_name: input.fileName,
+        content_type: input.contentType,
+        content_base64: input.contentBase64,
+      }),
+      signal: AbortSignal.timeout(60_000),
+    });
+    if (!response.ok) throw new Error("OA classification request failed");
+    const payload = (await response.json()) as {
+      status?: string;
+      model_id?: string;
+      model_version?: string;
+      stage_label?: string;
+      stage_probabilities?: Record<string, number>;
+      top_class_probability?: number;
+      safe_message?: string;
+    };
+    const hasReviewResult = payload.status === "model_result_for_review" && Boolean(payload.stage_label && payload.stage_probabilities && payload.top_class_probability !== undefined);
+    return {
+      completed: hasReviewResult,
+      analysisStatus: hasReviewResult ? "ready_for_review" : "pending_validation",
+      modelName: payload.model_id ?? null,
+      modelVersion: payload.model_version ?? null,
+      classification: hasReviewResult ? {
+        stageLabel: payload.stage_label as "Normal" | "MildOA" | "ModerateOA" | "SevereOA",
+        stageProbabilities: payload.stage_probabilities ?? {},
+        topClassProbability: payload.top_class_probability ?? 0,
+      } : null,
+      safeMessage: payload.safe_message ?? "No OA classifier result was generated.",
+    };
+  } catch {
+    return {
+      completed: false,
+      analysisStatus: "pending_validation",
+      modelName: null,
+      modelVersion: null,
+      classification: null,
+      safeMessage: "The FastAPI OA classifier could not be reached. No OA classifier result was created.",
     };
   }
 }

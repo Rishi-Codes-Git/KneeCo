@@ -14,6 +14,12 @@ export type IllustrativeCase = {
   meniscusThickness: string | null;
   updatedAt: string;
   reviewer: string | null;
+  oaClassifierResult?: {
+    stageLabel: "Normal" | "MildOA" | "ModerateOA" | "SevereOA";
+    topClassProbability: number;
+    modelName: string;
+    modelVersion: string;
+  } | null;
 };
 
 export const illustrativeCases: IllustrativeCase[] = [

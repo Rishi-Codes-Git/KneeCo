@@ -42,6 +42,10 @@ export const kneeCases = mysqlTable("kneeCases", {
   scanMimeType: varchar("scanMimeType", { length: 120 }).notNull(),
   scanSizeBytes: int("scanSizeBytes").notNull(),
   analysisStatus: mysqlEnum("analysisStatus", ["pending_validation", "queued", "processing", "ready_for_review", "review_required", "failed"]).default("pending_validation").notNull(),
+  oaModelName: varchar("oaModelName", { length: 160 }),
+  oaModelVersion: varchar("oaModelVersion", { length: 120 }),
+  oaClassificationJson: text("oaClassificationJson"),
+  oaClassifiedAt: timestamp("oaClassifiedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

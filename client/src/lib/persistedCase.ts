@@ -9,6 +9,9 @@ export type PersistedKneeCase = {
   lifestyleContext: string | null;
   kneeSide: "left" | "right" | "bilateral" | "unknown";
   analysisStatus: "pending_validation" | "queued" | "processing" | "ready_for_review" | "review_required" | "failed";
+  oaModelName: string | null;
+  oaModelVersion: string | null;
+  oaClassificationJson: string | null;
   updatedAt: Date | string;
 };
 
@@ -30,6 +33,22 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
   const requiresReview = kneeCase.analysisStatus === "review_required" || kneeCase.analysisStatus === "ready_for_review";
   const isFailed = kneeCase.analysisStatus === "failed";
   const timestamp = new Date(kneeCase.updatedAt);
+  let oaClassifierResult: IllustrativeCase["oaClassifierResult"] = null;
+  if (kneeCase.oaClassificationJson && kneeCase.oaModelName && kneeCase.oaModelVersion) {
+    try {
+      const parsed = JSON.parse(kneeCase.oaClassificationJson) as { stageLabel?: string; topClassProbability?: number };
+      if (["Normal", "MildOA", "ModerateOA", "SevereOA"].includes(parsed.stageLabel ?? "") && typeof parsed.topClassProbability === "number") {
+        oaClassifierResult = {
+          stageLabel: parsed.stageLabel as NonNullable<IllustrativeCase["oaClassifierResult"]>["stageLabel"],
+          topClassProbability: parsed.topClassProbability,
+          modelName: kneeCase.oaModelName,
+          modelVersion: kneeCase.oaModelVersion,
+        };
+      }
+    } catch {
+      oaClassifierResult = null;
+    }
+  }
   return {
     id: kneeCase.caseReference,
     patientLabel: kneeCase.patientName,
@@ -44,5 +63,6 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
     meniscusThickness: null,
     updatedAt: Number.isNaN(timestamp.getTime()) ? "Recent" : timestamp.toISOString().slice(0, 10),
     reviewer: null,
+    oaClassifierResult,
   };
 }

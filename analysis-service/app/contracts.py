@@ -67,6 +67,20 @@ class StudyPreflightResponse(BaseModel):
     safe_message: str
 
 
+class OaClassificationResponse(BaseModel):
+    case_id: str
+    status: Literal["model_result_for_review", "model_unavailable"]
+    model_id: str
+    model_version: str
+    input_shape: list[int] | None = None
+    stage_label: Literal["Normal", "MildOA", "ModerateOA", "SevereOA"] | None = None
+    stage_probabilities: dict[str, float] | None = None
+    top_class_probability: float | None = None
+    requires_clinician_review: bool = True
+    is_diagnosis: bool = False
+    safe_message: str
+
+
 class BoneDimensions(BaseModel):
     femoral_width_mm: float = Field(gt=0, le=200)
     femoral_ap_mm: float = Field(gt=0, le=200)

@@ -12,6 +12,7 @@ SERVICE_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SERVICE_ROOT))
 
 from app.main import app
+from app.oa_classifier import CLASS_NAMES, OaClassifier
 
 
 def png_payload(width: int = 640, height: int = 640) -> str:
@@ -140,6 +141,32 @@ class KneeCoAnalysisServiceTest(unittest.TestCase):
         payload = response.json()
         self.assertEqual(payload["status"], "ranked")
         self.assertEqual(payload["candidates"][0]["size"], "Closer")
+
+    def test_classifier_reports_unavailable_without_configured_weights(self):
+        response = self.client.post(
+            "/v1/studies/classify-oa",
+            json={
+                "case_id": "KNEE-OA-001",
+                "file_name": "study.png",
+                "content_type": "image/png",
+                "content_base64": png_payload(),
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["status"], "model_unavailable")
+
+    def test_classifier_formats_a_four_class_review_output_from_a_predictor(self):
+        class FakePredictor:
+            def predict(self, batch, verbose=0):
+                return [[0.1, 0.2, 0.6, 0.1]]
+
+        classifier = OaClassifier(None)
+        classifier._model = FakePredictor()
+        classifier.model_path = Path(__file__)
+        result = classifier.classify(Image.new("L", (640, 640), color=110))
+
+        self.assertEqual(result["stage_label"], "ModerateOA")
+        self.assertEqual(set(result["stage_probabilities"]), set(CLASS_NAMES))
 
     def test_analysis_request_is_blocked_before_validation(self):
         response = self.client.post(
