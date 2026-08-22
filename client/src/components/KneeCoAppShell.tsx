@@ -2,7 +2,7 @@ import { KneeCoMark } from "@/components/KneeCoMark";
 import { Button } from "@/components/ui/button";
 import { endClinicianSession, getClinicianSession } from "@/lib/clinicianSession";
 import { cn } from "@/lib/utils";
-import { FolderOpenDot, House, Menu, Plus, X } from "lucide-react";
+import { Archive, FolderOpenDot, House, Menu, Plus, X } from "lucide-react";
 import { ReactNode, useState } from "react";
 import { useLocation } from "wouter";
 
@@ -15,6 +15,7 @@ type KneeCoAppShellProps = {
 const navigation = [
   { label: "Home", href: "/home", icon: House },
   { label: "Case Overview", href: "/cases", icon: FolderOpenDot },
+  { label: "Previous Cases", href: "/previous-cases", icon: Archive },
 ];
 
 export function KneeCoAppShell({ title, eyebrow, children }: KneeCoAppShellProps) {
@@ -42,7 +43,7 @@ export function KneeCoAppShell({ title, eyebrow, children }: KneeCoAppShellProps
         <div className="mb-3 flex items-center justify-between px-3"><p className="text-[10px] font-extrabold uppercase tracking-[0.17em] text-white/70">Workspace</p><Button type="button" onClick={() => go("/new-case")} variant="ghost" className="h-7 rounded-lg bg-white/10 px-2 text-[10px] font-extrabold uppercase tracking-[0.1em] text-white hover:bg-[#C97C8D] hover:text-white"><Plus className="mr-1 h-3.5 w-3.5" />New Case</Button></div>
         <nav className="space-y-1.5" aria-label="KneeCo navigation">
           {navigation.map((item) => {
-            const active = item.href === "/cases" ? location === "/cases" || location.startsWith("/cases/") : location === item.href;
+            const active = item.href === "/cases" ? location === "/cases" || (location.startsWith("/cases/") && !location.includes("/analysis")) : item.href === "/previous-cases" ? location === "/previous-cases" : location === item.href;
             return <button key={item.href} type="button" onClick={() => go(item.href)} className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-extrabold transition", active ? "bg-[#C97C8D] text-white shadow-sm" : "text-white/85 hover:bg-white/10 hover:text-white")}><item.icon className="h-[18px] w-[18px]" />{item.label}</button>;
           })}
         </nav>

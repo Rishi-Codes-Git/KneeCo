@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { caseDetailPath, filterIllustrativeCases, getIllustrativeCase, illustrativeCases, kneeAnalysisPath } from "./caseArchive";
+import { caseDetailPath, closedIllustrativeCases, filterIllustrativeCases, getIllustrativeCase, illustrativeCases, kneeAnalysisPath } from "./caseArchive";
 
 describe("All Cases archive filtering", () => {
   it("filters illustrative cases by patient/case search", () => {
@@ -19,5 +19,10 @@ describe("All Cases archive filtering", () => {
 
   it("defaults safely to the first case when an overview case ID is unavailable", () => {
     expect(getIllustrativeCase("unknown-case").id).toBe("KC-2026-021");
+  });
+
+  it("keeps closed cases available to the shared case-detail resolver", () => {
+    expect(filterIllustrativeCases(closedIllustrativeCases, "", "report_signed")).toHaveLength(4);
+    expect(getIllustrativeCase("KC-2026-004").patientLabel).toBe("Patient RJ-004");
   });
 });

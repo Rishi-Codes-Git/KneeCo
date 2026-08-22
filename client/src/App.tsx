@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import AllCases from "./pages/AllCases";
 import CaseDetail from "./pages/CaseDetail";
 import KneeAnalysis from "./pages/KneeAnalysis";
+import PreviousCases from "./pages/PreviousCases";
 import Home from "./pages/Home";
 import HomeDashboard from "./pages/HomeDashboard";
 import NewCase from "./pages/NewCase";
@@ -20,6 +21,7 @@ function Router() {
       <Route path={"/cases/:caseId/analysis"} component={KneeAnalysis} />
       <Route path={"/cases/:caseId"} component={CaseDetail} />
       <Route path={"/cases"} component={AllCases} />
+      <Route path={"/previous-cases"} component={PreviousCases} />
       <Route path={"/new-case"} component={NewCase} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
