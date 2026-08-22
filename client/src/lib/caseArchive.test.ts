@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { caseOverviewPath, filterIllustrativeCases, getIllustrativeCase, illustrativeCases } from "./caseArchive";
+import { caseDetailPath, filterIllustrativeCases, getIllustrativeCase, illustrativeCases } from "./caseArchive";
 
 describe("All Cases archive filtering", () => {
   it("filters illustrative cases by patient/case search", () => {
@@ -10,9 +10,9 @@ describe("All Cases archive filtering", () => {
     expect(filterIllustrativeCases(illustrativeCases, "", "clinician_review").map((record) => record.id)).toEqual(["KC-2026-018"]);
   });
 
-  it("builds an addressable overview route and resolves its matching case", () => {
+  it("builds an addressable detail route and resolves its matching case", () => {
     const selectedId = "KC-2026-018";
-    expect(caseOverviewPath(selectedId)).toBe("/cases?case=KC-2026-018");
+    expect(caseDetailPath(selectedId)).toBe("/cases/KC-2026-018");
     expect(getIllustrativeCase(selectedId).patientLabel).toBe("Patient DM-018");
   });
 
