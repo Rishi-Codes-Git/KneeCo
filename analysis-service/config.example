@@ -1,0 +1,7 @@
+# Copy these non-secret values into the service environment only after controlled validation begins.
+# The values below preserve the safe default: automatic inference disabled.
+KNEECO_INFERENCE_ENABLED=false
+KNEECO_MODEL_ID=aagatti/nnunet_knee
+KNEECO_MODEL_VERSION=unvalidated
+KNEECO_EXPECTED_MODALITY=MR
+KNEECO_EXPECTED_SEQUENCE=T2-weighted knee MRI

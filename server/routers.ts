@@ -1,4 +1,5 @@
 import { COOKIE_NAME } from "@shared/const";
+import { getAnalysisServiceStatus } from "./analysisService";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router } from "./_core/trpc";
@@ -15,6 +16,18 @@ export const appRouter = router({
         success: true,
       } as const;
     }),
+  }),
+  branding: router({
+    publicConfig: publicProcedure.query(() => ({
+      title: process.env.VITE_APP_TITLE ?? "",
+      logo: process.env.VITE_APP_LOGO ?? "",
+      tagline: "Doctor's Knee Companion",
+      accentColor: "#C97C8D",
+      poweredBy: "Elro Tech",
+    })),
+  }),
+  analysis: router({
+    serviceStatus: publicProcedure.query(() => getAnalysisServiceStatus()),
   }),
 
   // TODO: add feature routers here, e.g.

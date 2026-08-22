@@ -1,0 +1,27 @@
+# Project TODO
+
+- [x] Discuss the knee-analysis solution concept in text only; do not implement a website or prototype without explicit user direction.
+- [x] Present one decision area at a time and pause for the user to review before advancing.
+- [x] Define the clinical scope and decision-support boundaries from the supplied problem statement.
+- [ ] Obtain explicit approval for one final innovation hook and document it as KneeCo’s product differentiator.
+- [x] Discuss user flows, pages, technology stack, and architecture only after the user approves the prior decisions.
+- [x] Define the first-review scope for Module 1 only: femur, tibia, and medial-meniscus assessment with demographic and lifestyle context.
+- [x] Select a fast, review-ready medical-imaging stack and an explainable measurement workflow.
+- [x] Define a DevOps workflow for repeatable local development, test validation, and safe demonstration delivery.
+- [ ] Finalize the Phase 1 stack for doctor authentication, MRI-first case intake, clinician case dashboard, AI-assisted measurement review, and exportable decision-support reports.
+- [ ] Keep clinician licence upload optional and preserve an explicit “decision support only” boundary throughout the user journey and report.
+- [x] Refine the selected stack into a lightweight hackathon deployment while isolating MRI inference for safe scaling beyond the prototype.
+- [x] Inspect the supplied knee-analysis model archive and verify its outputs, dependencies, preprocessing requirements, and evaluation evidence.
+- [x] Revise the AI foundation and integrated stack based on the verified model capabilities before application development begins.
+- [x] Choose one minimal application and image-analysis stack that can deliver upload-based, clinician-reviewable measurements, demographic context, analytics, and reports quickly.
+- [x] Define the precise boundary between a real image-processing result, a model-ready measurement contract, and clearly labelled demonstration output.
+- [x] Keep the Phase 1 workflow understandable: create a clinician-reviewed decision-support report now while preparing an opt-in, de-identified, clinician-annotated data path for future model training.
+- [x] Ensure the image-analysis design performs automatic first-pass femur, tibia, and medial-meniscus detection and measurement; clinicians should review or correct only uncertain/flagged cases, not draw routine contours.
+- [x] Configure the global product identity: KneeCo, “Doctor's Knee Companion,” Dusty Rose `#C97C8D`, supplied logo, and “Powered by Elro Tech” attribution.
+- [x] Prepare brand assets, project configuration, and AI-service integration boundaries without designing application pages.
+- [ ] Keep analysis in an explicitly labelled model-ready/demo mode until a de-identified, compatible T2 knee MRI study is available for validation.
+- [x] Prepare the analysis-service configuration and validation checklist without claiming a successful MRI-model run.
+- [x] Create a testable, no-inference Python analysis-service scaffold with model configuration, health check, DICOM validation interface, and typed result contract.
+- [x] Connect the core application to the analysis-service health state without designing product pages.
+- [x] Create a testable, no-inference Python analysis-service scaffold with model configuration, health check, DICOM validation interface, and typed result contract.
+- [x] Connect the core application to the analysis-service health state without designing product pages.

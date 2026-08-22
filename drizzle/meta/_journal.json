@@ -1,5 +1,13 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787390877787,
+      "tag": "0000_gray_clint_barton",
+      "breakpoints": true
+    }
+  ]
 }
