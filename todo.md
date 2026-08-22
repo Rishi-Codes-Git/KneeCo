@@ -47,3 +47,9 @@
 - [x] Replace the empty All Cases state with four clearly illustrative mock case records, clinician-relevant details, search, filtering, and status indicators.
 - [x] Keep mock records isolated from the persistent case API so real MRI-backed cases can replace them cleanly in the next connection step.
 - [x] Test and visually verify the All Cases archive at desktop and mobile widths.
+- [ ] Reassess the reviewer feedback and select a minimal output-first analysis flow before changing the existing frontend or backend.
+- [ ] Replace unnecessary DICOM/PACS-oriented implementation assumptions only after the user approves a simpler output-focused backend plan.
+- [ ] Review the proposed report-OCR, anatomical-measurement, and OA-inference flow; correct its data and model boundaries before implementation.
+- [ ] Define a feasible Phase 2 implant-sizing concept, including TKA education, a structured implant catalogue, ranked matches, and explicit clinician-review safeguards.
+- [ ] Export the latest checkpointed KneeCo project to a user-selected GitHub repository and confirm the handoff.
+- [ ] Inspect and safely integrate the current project with the existing GitHub repository Rishi-Codes-Git/KneeCo before pushing.
