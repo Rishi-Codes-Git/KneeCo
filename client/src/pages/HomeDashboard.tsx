@@ -1,27 +1,43 @@
 import { KneeCoAppShell } from "@/components/KneeCoAppShell";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, FileSearch, ScanLine, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
+import { filterIllustrativeCases, illustrativeCases } from "@/lib/caseArchive";
+import { ArrowUpRight, FileCheck2, FileSearch, Search, Sparkles } from "lucide-react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
+
+const statusTone: Record<string, string> = {
+  "Analysis ready": "bg-[#F8E7EB] text-[#934F60]",
+  "Review recommended": "bg-[#FFF3DE] text-[#A76A1B]",
+  "Report signed": "bg-[#E8F4EF] text-[#2D7A58]",
+  "Intake complete": "bg-[#F1EDF7] text-[#725486]",
+};
+
+function Metric({ label, value, detail, accent }: { label: string; value: string; detail: string; accent?: boolean }) {
+  return <div className={`rounded-2xl border p-5 ${accent ? "border-[#D7B6BE] bg-[#FFF8F9]" : "border-[#EEE4E6] bg-white"}`}><p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-[#9E868D]">{label}</p><p className="font-kneeco-display mt-3 text-3xl tracking-[-0.04em] text-[#352C30]">{value}</p><p className="mt-1 text-xs leading-5 text-[#806C73]">{detail}</p></div>;
+}
 
 export default function HomeDashboard() {
   const [, setLocation] = useLocation();
+  const [query, setQuery] = useState("");
+  const visibleCases = useMemo(() => filterIllustrativeCases(illustrativeCases, query, "all").slice(0, 4), [query]);
 
   return (
-    <KneeCoAppShell eyebrow="Clinical overview" title="Home">
-      <div className="mx-auto max-w-6xl">
-        <section className="rounded-[1.75rem] border border-[#EFE4E6] bg-white p-7 shadow-[0_18px_45px_-35px_rgba(92,49,61,0.35)] sm:p-10">
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-            <div><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#A6556A]">A considered first look</p><h2 className="font-kneeco-display mt-4 max-w-xl text-4xl leading-[1.08] tracking-[-0.04em] text-[#352C30] sm:text-5xl">Every clearer case starts with one scan.</h2><p className="mt-5 max-w-xl text-sm leading-7 text-[#77666C]">Create your first KneeCo case to organise MRI context, automatic analysis status, and clinician-reviewed reporting in one workspace.</p></div>
-                    <div className="rounded-2xl bg-[#FBF0F2] p-6"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C97C8D] text-white"><ScanLine className="h-5 w-5" /></div><p className="mt-5 text-lg font-extrabold text-[#44343A]">No case activity yet</p><p className="mt-2 text-sm leading-6 text-[#806C73]">Your case list is empty. Begin with a new scan when you are ready.</p><Button type="button" onClick={() => setLocation("/new-case")} variant="link" className="mt-3 h-auto px-0 text-sm font-extrabold text-[#A6556A] hover:text-[#813E50]">Prepare a new case<ArrowRight className="ml-1.5 h-4 w-4" /></Button></div>
-          </div>
+    <KneeCoAppShell eyebrow="Clinical workspace" title="Home">
+      <div className="mx-auto max-w-7xl">
+        <section className="flex flex-col gap-6 rounded-[1.75rem] border border-[#EFE4E6] bg-white p-7 shadow-[0_18px_45px_-35px_rgba(92,49,61,0.35)] sm:p-9 lg:flex-row lg:items-end lg:justify-between">
+          <div><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#A6556A]">Tuesday · Clinical day overview</p><h2 className="font-kneeco-display mt-3 text-4xl tracking-[-0.04em] text-[#352C30] sm:text-5xl">Good morning, Dr. Asha.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-[#7B686F]">Your active knee assessments, review tasks, and report progress are organised here.</p></div>
+          <label className="relative block w-full max-w-sm"><Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#A28C92]" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search a case or patient" className="h-11 w-full rounded-xl border border-[#E8DDDF] bg-white pl-10 pr-4 text-sm font-semibold text-[#4A3A40] outline-none placeholder:text-[#B19DA3] focus:ring-2 focus:ring-[#C97C8D]" /></label>
         </section>
 
-        <section className="mt-8 grid gap-5 md:grid-cols-3">
-          {[{ icon: FileSearch, title: "Case-led", text: "A clear place for imaging context, review notes and reports." }, { icon: ShieldCheck, title: "Clinician verified", text: "AI-assisted output remains reviewable before it is saved." }, { icon: ScanLine, title: "Model-ready", text: "Automatic MRI analysis will activate after controlled validation." }].map((item) => <div key={item.title} className="rounded-2xl border border-[#EFE4E6] bg-white p-6"><item.icon className="h-5 w-5 text-[#A6556A]" /><h3 className="mt-5 text-sm font-extrabold text-[#44343A]">{item.title}</h3><p className="mt-2 text-sm leading-6 text-[#7D6B71]">{item.text}</p></div>)}
+        <section className="mt-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><Metric label="Total cases" value="24" detail="Across your clinician workspace" /><Metric label="Analysed cases" value="18" detail="Measurements available for review" /><Metric label="Pending review" value="6" detail="Require a clinician decision" accent /><Metric label="Reports generated" value="15" detail="Decision-support records signed" /></section>
+
+        <section className="mt-7 overflow-hidden rounded-[1.6rem] border border-[#EDE3E5] bg-white shadow-[0_18px_45px_-38px_rgba(92,49,61,0.38)]">
+          <div className="flex flex-col gap-4 border-b border-[#F0E7E9] p-6 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#A6556A]">Recent case activity</p><h3 className="mt-2 text-xl font-extrabold text-[#403239]">Case workspace</h3><p className="mt-1 text-sm text-[#8A747B]">Open a case to review its clinical status and next action.</p></div><Button type="button" onClick={() => setLocation("/cases")} variant="outline" className="rounded-xl border-[#DEC5CB] bg-white text-[#914F60] hover:bg-[#FFF5F6]">View Case Overview<ArrowUpRight className="ml-2 h-4 w-4" /></Button></div>
+          <div className="hidden grid-cols-[1.15fr_.65fr_.45fr_.55fr_.75fr_.75fr_.6fr] gap-4 border-b border-[#F0E7E9] bg-[#FFFAFB] px-6 py-3 text-[10px] font-extrabold uppercase tracking-[0.13em] text-[#9D868D] md:grid"><span>Case</span><span>Patient</span><span>Age</span><span>Sex</span><span>OA</span><span>Analysis</span><span>Report</span></div>
+          {visibleCases.length ? visibleCases.map((record) => <button type="button" key={record.id} onClick={() => setLocation("/cases")} className="grid w-full gap-2 border-b border-[#F3EAEC] px-6 py-5 text-left transition last:border-0 hover:bg-[#FFF9FA] md:grid-cols-[1.15fr_.65fr_.45fr_.55fr_.75fr_.75fr_.6fr] md:items-center md:gap-4"><div><p className="text-sm font-extrabold text-[#43343A]">{record.id}</p><p className="mt-1 text-xs text-[#987F87]">{record.kneeSide} knee MRI</p></div><p className="text-sm font-semibold text-[#5C484F]">{record.patientLabel.replace("Patient ", "")}</p><p className="text-sm text-[#755F67]">{record.age}</p><p className="text-sm text-[#755F67]">{record.sex}</p><p className="text-sm text-[#755F67]">{record.oaStatus}</p><span className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-extrabold ${statusTone[record.statusLabel]}`}>{record.statusLabel}</span><span className="text-xs font-extrabold text-[#896D75]">{record.status === "report_signed" ? "Ready" : "—"}</span></button>) : <div className="flex min-h-44 flex-col items-center justify-center p-8 text-center"><FileSearch className="h-6 w-6 text-[#B78691]" /><p className="mt-3 text-sm font-extrabold text-[#4A393F]">No matching cases</p><p className="mt-1 text-sm text-[#88727A]">Try another patient or case search.</p></div>}
         </section>
 
-        <section className="mt-8 flex flex-col items-start justify-between gap-5 rounded-2xl border border-dashed border-[#E8D1D6] bg-[#fffdfd] p-6 sm:flex-row sm:items-center"><div><p className="font-extrabold text-[#44343A]">Want to revisit a saved study?</p><p className="mt-1 text-sm text-[#806C73]">All completed and in-progress cases will appear in the case archive.</p></div><Button type="button" onClick={() => setLocation("/cases")} variant="outline" className="rounded-xl border-[#E2CBD1] bg-white text-[#8E4F5D] hover:bg-[#FBF1F3]">View all cases</Button></section>
+        <section className="mt-7 grid gap-5 lg:grid-cols-[1.15fr_.85fr]"><div className="rounded-2xl border border-[#EDE3E5] bg-white p-6"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F8E7EB] text-[#A6556A]"><FileCheck2 className="h-5 w-5" /></span><div><p className="text-sm font-extrabold text-[#44343A]">Review focus</p><p className="mt-1 text-sm text-[#806C73]">One case needs a clinician decision before a report can proceed.</p></div></div><Button type="button" onClick={() => setLocation("/cases")} variant="link" className="mt-5 h-auto px-0 text-sm font-extrabold text-[#A6556A] hover:text-[#813E50]">Open Case Overview<ArrowUpRight className="ml-1.5 h-4 w-4" /></Button></div><div className="rounded-2xl border border-[#EDE3E5] bg-[#FFF9FA] p-6"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C97C8D] text-white"><Sparkles className="h-5 w-5" /></span><div><p className="text-sm font-extrabold text-[#44343A]">KneeCo assessment</p><p className="mt-1 text-sm text-[#806C73]">Measurements and implant planning remain clinician-reviewed decision support.</p></div></div></div></section>
       </div>
     </KneeCoAppShell>
   );

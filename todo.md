@@ -53,3 +53,8 @@
 - [ ] Define a feasible Phase 2 implant-sizing concept, including TKA education, a structured implant catalogue, ranked matches, and explicit clinician-review safeguards.
 - [x] Export the latest checkpointed KneeCo project to a user-selected GitHub repository and confirm the handoff.
 - [x] Inspect and safely integrate the current project with the existing GitHub repository Rishi-Codes-Git/KneeCo before pushing.
+- [ ] Review the pasted unified application plan and agree a local, lightweight image/PDF-first architecture before removing existing backend components.
+- [x] Redesign Home to the approved pasted-plan format and rename All Cases to Case Overview without changing KneeCo typography or brand styling.
+- [ ] Preserve FastAPI as the future measurement backend and defer Keras-module integration until the user supplies the model archive and usage prompt.
+- [x] Redesign the Home dashboard and replace All Cases with Case Overview only; do not alter the established font or dual-tone KneeCo visual system.
+- [x] Redesign the Home dashboard and replace All Cases with Case Overview only; do not alter the established font or dual-tone KneeCo visual system.

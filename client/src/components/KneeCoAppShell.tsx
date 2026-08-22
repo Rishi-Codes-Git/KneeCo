@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { FolderOpenDot, House, Menu, Plus, X } from "lucide-react";
 import { ReactNode, useState } from "react";
 import { useLocation } from "wouter";
-import { toast } from "sonner";
 
 type KneeCoAppShellProps = {
   title: string;
@@ -15,7 +14,7 @@ type KneeCoAppShellProps = {
 
 const navigation = [
   { label: "Home", href: "/home", icon: House },
-  { label: "All Cases", href: "/cases", icon: FolderOpenDot },
+  { label: "Case Overview", href: "/cases", icon: FolderOpenDot },
 ];
 
 export function KneeCoAppShell({ title, eyebrow, children }: KneeCoAppShellProps) {
