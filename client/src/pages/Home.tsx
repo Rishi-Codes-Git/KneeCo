@@ -1,6 +1,6 @@
 import { useAuth } from "@/_core/hooks/useAuth";
-import AuthEntry from "./AuthEntry";
+import MockAccess from "./MockAccess";
 
 export default function Home() {
-  return <AuthEntry />;
+  return <MockAccess />;
 }

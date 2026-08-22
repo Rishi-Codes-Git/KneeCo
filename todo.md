@@ -27,3 +27,8 @@
 - [x] Connect sign-in/sign-up interactions, accessibility states, and authentication flow without exposing credentials.
 - [ ] Persist clinician sign-up details only after authorised OAuth access; defer optional licence-file upload until a secured profile-upload flow is implemented.
 - [x] Test and visually verify the responsive KneeCo authentication experience.
+- [x] Replace external workspace authorisation with clearly labelled mock clinician entry for the hackathon prototype.
+- [x] Build the KneeCo application shell with logo, app name, “Powered by Elro Tech,” Home, and All Cases in the left sidebar.
+- [x] Build the Home screen with a top-right “New Case” action and a clinically useful overview.
+- [x] Build the All Cases screen and navigation state.
+- [x] Test and visually verify the mock-access and dashboard-shell experience.
