@@ -3,7 +3,7 @@
 - [x] Discuss the knee-analysis solution concept in text only; do not implement a website or prototype without explicit user direction.
 - [x] Present one decision area at a time and pause for the user to review before advancing.
 - [x] Define the clinical scope and decision-support boundaries from the supplied problem statement.
-- [ ] Obtain explicit approval for one final innovation hook and document it as KneeCo’s product differentiator.
+- [x] Obtain explicit approval for one final innovation hook and document it as KneeCo’s product differentiator: clinician-verified automatic MRI analysis with consented, de-identified future-training data.
 - [x] Discuss user flows, pages, technology stack, and architecture only after the user approves the prior decisions.
 - [x] Define the first-review scope for Module 1 only: femur, tibia, and medial-meniscus assessment with demographic and lifestyle context.
 - [x] Select a fast, review-ready medical-imaging stack and an explainable measurement workflow.
@@ -23,5 +23,7 @@
 - [x] Prepare the analysis-service configuration and validation checklist without claiming a successful MRI-model run.
 - [x] Create a testable, no-inference Python analysis-service scaffold with model configuration, health check, DICOM validation interface, and typed result contract.
 - [x] Connect the core application to the analysis-service health state without designing product pages.
-- [x] Create a testable, no-inference Python analysis-service scaffold with model configuration, health check, DICOM validation interface, and typed result contract.
-- [x] Connect the core application to the analysis-service health state without designing product pages.
+- [x] Build a white-led, Dusty Rose clinician authentication experience with the KneeCo logo, “Powered by Elro Tech” attribution, and distinctive typography.
+- [x] Connect sign-in/sign-up interactions, accessibility states, and authentication flow without exposing credentials.
+- [ ] Persist clinician sign-up details only after authorised OAuth access; defer optional licence-file upload until a secured profile-upload flow is implemented.
+- [x] Test and visually verify the responsive KneeCo authentication experience.
