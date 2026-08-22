@@ -62,3 +62,4 @@
 - [ ] Plan the next clinician workflow pages after the Case Overview navigation fix while keeping Keras-model integration deferred.
 - [x] Restore Case Overview as the complete all-cases list and create a separate selected-case detail route for row-level review.
 - [x] Remove the top-navigation New Case action and place a compact New Case control beside the Workspace label in the sidebar.
+- [x] Design and route a Knee Analysis clinician-review page from Case Detail, preserving the established KneeCo visual system and deferring Keras/FastAPI result integration.

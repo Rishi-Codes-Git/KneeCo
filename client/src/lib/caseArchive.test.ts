@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { caseDetailPath, filterIllustrativeCases, getIllustrativeCase, illustrativeCases } from "./caseArchive";
+import { caseDetailPath, filterIllustrativeCases, getIllustrativeCase, illustrativeCases, kneeAnalysisPath } from "./caseArchive";
 
 describe("All Cases archive filtering", () => {
   it("filters illustrative cases by patient/case search", () => {
@@ -13,6 +13,7 @@ describe("All Cases archive filtering", () => {
   it("builds an addressable detail route and resolves its matching case", () => {
     const selectedId = "KC-2026-018";
     expect(caseDetailPath(selectedId)).toBe("/cases/KC-2026-018");
+    expect(kneeAnalysisPath(selectedId)).toBe("/cases/KC-2026-018/analysis");
     expect(getIllustrativeCase(selectedId).patientLabel).toBe("Patient DM-018");
   });
 

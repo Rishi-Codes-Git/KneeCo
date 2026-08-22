@@ -27,6 +27,10 @@ export function caseDetailPath(caseId: string) {
   return `/cases/${encodeURIComponent(caseId)}`;
 }
 
+export function kneeAnalysisPath(caseId: string) {
+  return `/cases/${encodeURIComponent(caseId)}/analysis`;
+}
+
 export function getIllustrativeCase(caseId: string | null | undefined) {
   return illustrativeCases.find((record) => record.id === caseId) ?? illustrativeCases[0];
 }
