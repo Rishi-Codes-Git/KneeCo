@@ -51,5 +51,5 @@
 - [ ] Replace unnecessary DICOM/PACS-oriented implementation assumptions only after the user approves a simpler output-focused backend plan.
 - [ ] Review the proposed report-OCR, anatomical-measurement, and OA-inference flow; correct its data and model boundaries before implementation.
 - [ ] Define a feasible Phase 2 implant-sizing concept, including TKA education, a structured implant catalogue, ranked matches, and explicit clinician-review safeguards.
-- [ ] Export the latest checkpointed KneeCo project to a user-selected GitHub repository and confirm the handoff.
-- [ ] Inspect and safely integrate the current project with the existing GitHub repository Rishi-Codes-Git/KneeCo before pushing.
+- [x] Export the latest checkpointed KneeCo project to a user-selected GitHub repository and confirm the handoff.
+- [x] Inspect and safely integrate the current project with the existing GitHub repository Rishi-Codes-Git/KneeCo before pushing.
