@@ -64,3 +64,4 @@
 - [x] Remove the top-navigation New Case action and place a compact New Case control beside the Workspace label in the sidebar.
 - [x] Design and route a Knee Analysis clinician-review page from Case Detail, preserving the established KneeCo visual system and deferring Keras/FastAPI result integration.
 - [x] Build a Previous Cases page for closed cases and add it below Case Overview in the sidebar.
+- [ ] Commit and push the latest verified KneeCo frontend and workflow updates to the existing GitHub main branch.
