@@ -34,24 +34,24 @@ export function KneeCoAppShell({ title, eyebrow, children }: KneeCoAppShellProps
   };
 
   const sidebar = (
-    <aside className="flex h-full w-[272px] flex-col border-r border-[#EEE4E6] bg-[#fffdfd] px-5 py-6">
-      <KneeCoMark size="sm" />
+    <aside className="flex h-full w-[272px] flex-col bg-[#C97C8D] px-5 py-6 text-white">
+      <KneeCoMark size="sm" tone="inverse" />
       <div className="mt-10">
-        <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[0.17em] text-[#A18A91]">Workspace</p>
+        <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[0.17em] text-white/70">Workspace</p>
         <nav className="space-y-1.5" aria-label="KneeCo navigation">
           {navigation.map((item) => {
             const active = location === item.href;
-            return <button key={item.href} type="button" onClick={() => go(item.href)} className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-extrabold transition", active ? "bg-[#F8E9EC] text-[#8E4F5D]" : "text-[#6F5E64] hover:bg-[#FCF4F5] hover:text-[#8E4F5D]")}><item.icon className="h-[18px] w-[18px]" />{item.label}</button>;
+            return <button key={item.href} type="button" onClick={() => go(item.href)} className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-extrabold transition", active ? "bg-white/22 text-white shadow-sm" : "text-white/90 hover:bg-white/12 hover:text-white")}><item.icon className="h-[18px] w-[18px]" />{item.label}</button>;
           })}
         </nav>
       </div>
-      <div className="mt-auto rounded-2xl border border-[#F0E5E7] bg-[#FFFAFB] p-4">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#A08A91]">Clinician account</p>
-        <p className="mt-2 text-sm font-extrabold text-[#413239]">{clinician?.name ?? "Dr. Asha Raman"}</p>
-        <p className="mt-1 text-xs leading-5 text-[#867179]">{clinician?.clinicName ?? "Raman Orthopaedics"}</p>
-        <button type="button" onClick={signOut} className="mt-4 text-xs font-extrabold text-[#A6556A] hover:text-[#813E50]">Sign out</button>
+      <div className="mt-auto rounded-2xl border border-white/25 bg-white/12 p-4">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-white/70">Clinician account</p>
+        <p className="mt-2 text-sm font-extrabold text-white">{clinician?.name ?? "Dr. Asha Raman"}</p>
+        <p className="mt-1 text-xs leading-5 text-white/80">{clinician?.clinicName ?? "Raman Orthopaedics"}</p>
+        <button type="button" onClick={signOut} className="mt-4 text-xs font-extrabold text-white hover:text-white/75">Sign out</button>
       </div>
-      <p className="mt-5 text-center text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#A28E94]">Powered by Elro Tech</p>
+      <p className="mt-5 text-center text-[10px] font-extrabold uppercase tracking-[0.14em] text-white/75">Powered by Elro Tech</p>
     </aside>
   );
 

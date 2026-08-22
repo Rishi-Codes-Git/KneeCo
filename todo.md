@@ -35,3 +35,5 @@
 - [x] Remove all demo, hackathon, and prototype terminology from KneeCo’s entry, sidebar, and workspace language.
 - [x] Add professionally prefilled sign-in and sign-up form states that enter the application directly without external authentication.
 - [x] Verify the refined professional KneeCo entry and workspace presentation.
+- [x] Change only the KneeCo sidebar to Dusty Rose `#C97C8D` with white iconography and text, preserving the existing content layout.
+- [x] Verify the Dusty Rose sidebar contrast at desktop and mobile widths.
