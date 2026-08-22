@@ -42,7 +42,7 @@ export function KneeCoAppShell({ title, eyebrow, children }: KneeCoAppShellProps
         <p className="mb-3 px-3 text-[10px] font-extrabold uppercase tracking-[0.17em] text-white/70">Workspace</p>
         <nav className="space-y-1.5" aria-label="KneeCo navigation">
           {navigation.map((item) => {
-            const active = location === item.href;
+            const active = location.split("?")[0] === item.href;
             return <button key={item.href} type="button" onClick={() => go(item.href)} className={cn("flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-extrabold transition", active ? "bg-[#C97C8D] text-white shadow-sm" : "text-white/85 hover:bg-white/10 hover:text-white")}><item.icon className="h-[18px] w-[18px]" />{item.label}</button>;
           })}
         </nav>

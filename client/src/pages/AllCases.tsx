@@ -1,9 +1,9 @@
 import { KneeCoAppShell } from "@/components/KneeCoAppShell";
 import { Button } from "@/components/ui/button";
-import { illustrativeCases } from "@/lib/caseArchive";
+import { getIllustrativeCase } from "@/lib/caseArchive";
 import { ArrowUpRight, CheckCircle2, ClipboardList, FileCheck2, FileText, ImageIcon, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
-import { useLocation } from "wouter";
+import { useLocation, useSearch } from "wouter";
 
 function ProgressState({ title, detail, state }: { title: string; detail: string; state: "complete" | "current" | "idle" }) {
   const tone = state === "complete" ? "bg-[#E8F4EF] text-[#2D7A58]" : state === "current" ? "bg-[#F8E7EB] text-[#A6556A]" : "bg-[#F1EDF7] text-[#76568A]";
@@ -12,12 +12,14 @@ function ProgressState({ title, detail, state }: { title: string; detail: string
 
 export default function AllCases() {
   const [, setLocation] = useLocation();
-  const record = illustrativeCases[0];
+  const search = useSearch();
+  const selectedCaseId = new URLSearchParams(search).get("case");
+  const record = getIllustrativeCase(selectedCaseId);
 
   return (
     <KneeCoAppShell eyebrow="Clinical case" title="Case Overview">
       <div className="mx-auto max-w-6xl">
-        <section className="rounded-[1.75rem] border border-[#EFE4E6] bg-white p-7 shadow-[0_18px_45px_-35px_rgba(92,49,61,0.35)] sm:p-9"><div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#A6556A]">Active assessment</p><h2 className="font-kneeco-display mt-3 text-4xl tracking-[-0.04em] text-[#352C30]">Case {record.id}</h2><p className="mt-3 text-sm leading-6 text-[#7A676E]">{record.patientLabel} · {record.age} years · {record.sex} · {record.kneeSide} knee</p></div><div className="flex flex-wrap gap-3"><span className="rounded-full bg-[#F8E7EB] px-3 py-2 text-xs font-extrabold text-[#934F60]">Analysis ready</span><Button type="button" onClick={() => setLocation("/new-case")} className="rounded-xl bg-[#C97C8D] text-white hover:bg-[#A6556A]">New Case</Button></div></div>
+        <section className="rounded-[1.75rem] border border-[#EFE4E6] bg-white p-7 shadow-[0_18px_45px_-35px_rgba(92,49,61,0.35)] sm:p-9"><div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#A6556A]">Active assessment</p><h2 className="font-kneeco-display mt-3 text-4xl tracking-[-0.04em] text-[#352C30]">Case {record.id}</h2><p className="mt-3 text-sm leading-6 text-[#7A676E]">{record.patientLabel} · {record.age} years · {record.sex} · {record.kneeSide} knee</p></div><div className="flex flex-wrap gap-3"><span className="rounded-full bg-[#F8E7EB] px-3 py-2 text-xs font-extrabold text-[#934F60]">{record.statusLabel}</span><Button type="button" onClick={() => setLocation("/new-case")} className="rounded-xl bg-[#C97C8D] text-white hover:bg-[#A6556A]">New Case</Button></div></div>
           <div className="mt-8 grid gap-4 sm:grid-cols-4"><div className="rounded-xl border border-[#EEE3E5] p-4"><p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-[#9C858C]">Patient</p><p className="mt-2 text-sm font-extrabold text-[#45353B]">{record.patientLabel}</p></div><div className="rounded-xl border border-[#EEE3E5] p-4"><p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-[#9C858C]">OA status</p><p className="mt-2 text-sm font-extrabold text-[#45353B]">{record.oaStatus}</p></div><div className="rounded-xl border border-[#EEE3E5] p-4"><p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-[#9C858C]">MRI study</p><p className="mt-2 text-sm font-extrabold text-[#45353B]">Uploaded</p></div><div className="rounded-xl border border-[#EEE3E5] p-4"><p className="text-[10px] font-extrabold uppercase tracking-[0.13em] text-[#9C858C]">Report</p><p className="mt-2 text-sm font-extrabold text-[#45353B]">Pending approval</p></div></div>
         </section>
 

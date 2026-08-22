@@ -23,6 +23,14 @@ export const illustrativeCases: IllustrativeCase[] = [
   { id: "KC-2026-012", patientLabel: "Patient NP-012", age: 54, sex: "Male", kneeSide: "Right", oaStatus: "Not indicated", lifestyleContext: "Recreational sport", status: "intake_complete", statusLabel: "Intake complete", statusNote: "MRI study is recorded and awaiting analysis workflow availability.", meniscusThickness: null, updatedAt: "21 Aug, 14:15", reviewer: null },
 ];
 
+export function caseOverviewPath(caseId: string) {
+  return `/cases?case=${encodeURIComponent(caseId)}`;
+}
+
+export function getIllustrativeCase(caseId: string | null | undefined) {
+  return illustrativeCases.find((record) => record.id === caseId) ?? illustrativeCases[0];
+}
+
 export function filterIllustrativeCases(records: IllustrativeCase[], query: string, status: "all" | CaseStatus) {
   const normalized = query.trim().toLowerCase();
   return records.filter((record) => {

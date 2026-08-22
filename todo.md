@@ -58,3 +58,5 @@
 - [ ] Preserve FastAPI as the future measurement backend and defer Keras-module integration until the user supplies the model archive and usage prompt.
 - [x] Redesign the Home dashboard and replace All Cases with Case Overview only; do not alter the established font or dual-tone KneeCo visual system.
 - [x] Redesign the Home dashboard and replace All Cases with Case Overview only; do not alter the established font or dual-tone KneeCo visual system.
+- [x] Fix Home-to-Case Overview navigation so the clicked case ID determines the loaded single-case detail view.
+- [ ] Plan the next clinician workflow pages after the Case Overview navigation fix while keeping Keras-model integration deferred.
