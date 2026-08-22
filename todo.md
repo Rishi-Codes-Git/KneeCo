@@ -42,3 +42,8 @@
 - [x] Build the New Case workflow with patient ID/name, age, sex, known OA status, optional lifestyle context, and MRI-only upload intake.
 - [x] Connect New Case actions to local validation and the future analysis-service pathway without claiming MRI analysis is currently validated.
 - [ ] Complete end-to-end New Case verification with a compatible MRI: file selection, successful persistence, pending-validation status, and post-submit case visibility.
+- [ ] Establish a compliant knee-MRI data acquisition and de-identification plan for model validation and future training.
+- [ ] Define the hospital/PACS integration, security, governance, and validation roadmap required for clinical KneeCo deployment.
+- [x] Replace the empty All Cases state with four clearly illustrative mock case records, clinician-relevant details, search, filtering, and status indicators.
+- [x] Keep mock records isolated from the persistent case API so real MRI-backed cases can replace them cleanly in the next connection step.
+- [x] Test and visually verify the All Cases archive at desktop and mobile widths.
