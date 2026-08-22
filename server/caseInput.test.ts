@@ -1,17 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-const acceptedMriFile = /\.(dcm|nii|nii\.gz)$/i;
+const acceptedMriFile = /\.(jpg|jpeg|png|pdf)$/i;
 
 describe("KneeCo MRI intake contract", () => {
-  it("accepts the DICOM and NIfTI file extensions supported by case intake", () => {
-    expect(acceptedMriFile.test("knee-series.dcm")).toBe(true);
-    expect(acceptedMriFile.test("knee-volume.nii")).toBe(true);
-    expect(acceptedMriFile.test("knee-volume.nii.gz")).toBe(true);
+  it("accepts the image and PDF file extensions supported by case intake", () => {
+    expect(acceptedMriFile.test("knee-screenshot.png")).toBe(true);
+    expect(acceptedMriFile.test("knee-scan.jpg")).toBe(true);
+    expect(acceptedMriFile.test("knee-report.pdf")).toBe(true);
   });
 
-  it("rejects presentation-image formats that cannot support the MRI measurement pipeline", () => {
-    expect(acceptedMriFile.test("knee-screenshot.png")).toBe(false);
-    expect(acceptedMriFile.test("knee-photo.jpg")).toBe(false);
+  it("rejects unsupported volume formats", () => {
+    expect(acceptedMriFile.test("knee-series.dcm")).toBe(false);
+    expect(acceptedMriFile.test("knee-volume.nii.gz")).toBe(false);
   });
 });
-

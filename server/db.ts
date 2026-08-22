@@ -119,4 +119,11 @@ export async function listKneeCases() {
   return db.select().from(kneeCases).orderBy(desc(kneeCases.createdAt));
 }
 
+export async function getKneeCaseByReference(caseReference: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [kneeCase] = await db.select().from(kneeCases).where(eq(kneeCases.caseReference, caseReference)).limit(1);
+  return kneeCase;
+}
+
 // TODO: add feature queries here as your schema grows.

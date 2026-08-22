@@ -65,3 +65,6 @@
 - [x] Design and route a Knee Analysis clinician-review page from Case Detail, preserving the established KneeCo visual system and deferring Keras/FastAPI result integration.
 - [x] Build a Previous Cases page for closed cases and add it below Case Overview in the sidebar.
 - [x] Commit and push the latest verified KneeCo frontend and workflow updates to the existing GitHub main branch.
+- [x] Inspect the available MRI model materials and current FastAPI service to determine what analysis workflow can be implemented and validated.
+- [x] Implement a clinician-reviewed FastAPI image/PDF workflow for technical preflight and implant-candidate ranking without presenting unvalidated segmentation or measurement findings as clinical facts.
+- [ ] Integrate a trained, versioned knee-segmentation model only after compatible inputs, physical-spacing measurement validation, and clinician review criteria are supplied.

@@ -4,8 +4,8 @@ export type IllustrativeCase = {
   id: string;
   patientLabel: string;
   age: number;
-  sex: "Female" | "Male" | "Not recorded";
-  kneeSide: "Left" | "Right" | "Bilateral";
+  sex: "Female" | "Male" | "Intersex" | "Not recorded";
+  kneeSide: "Left" | "Right" | "Bilateral" | "Not recorded";
   oaStatus: "Known" | "Not recorded" | "Confirmed" | "Not indicated";
   lifestyleContext: string;
   status: CaseStatus;

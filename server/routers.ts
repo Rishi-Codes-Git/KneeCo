@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { z } from "zod";
-import { getAnalysisServiceStatus } from "./analysisService";
-import { createKneeCase, listKneeCases, upsertClinicianProfile } from "./db";
+import { getAnalysisServiceStatus, requestStudyPreflight } from "./analysisService";
+import { createKneeCase, getKneeCaseByReference, listKneeCases, upsertClinicianProfile } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
@@ -9,7 +9,7 @@ import { storagePut } from "./storage";
 
 const maxScanBytes = 20 * 1024 * 1024;
 const scanInput = z.object({
-  fileName: z.string().trim().min(5).max(255).refine((value) => /\.(dcm|nii|nii\.gz)$/i.test(value), "Upload a DICOM (.dcm) or NIfTI (.nii/.nii.gz) MRI file."),
+  fileName: z.string().trim().min(5).max(255).refine((value) => /\.(jpg|jpeg|png|pdf)$/i.test(value), "Upload a JPG, JPEG, PNG, or PDF knee study."),
   contentType: z.string().max(120).optional(),
   sizeBytes: z.number().int().positive().max(maxScanBytes),
   contentBase64: z.string().min(1).max(28_000_000),
@@ -76,10 +76,11 @@ export const appRouter = router({
   }),
   cases: router({
     list: publicProcedure.query(() => listKneeCases()),
+    get: publicProcedure.input(z.object({ caseReference: z.string().trim().min(1).max(40) })).query(({ input }) => getKneeCaseByReference(input.caseReference)),
     create: publicProcedure.input(newCaseInput).mutation(async ({ input }) => {
       const fileBuffer = Buffer.from(input.scan.contentBase64, "base64");
       if (!fileBuffer.length || fileBuffer.length > maxScanBytes) {
-        throw new Error("The MRI file is empty or exceeds the 20 MB intake limit.");
+        throw new Error("The image or PDF study is empty or exceeds the 20 MB intake limit.");
       }
 
       const caseReference = makeCaseReference();
@@ -88,6 +89,13 @@ export const appRouter = router({
         fileBuffer,
         input.scan.contentType || "application/octet-stream",
       );
+
+      const preflight = await requestStudyPreflight({
+        caseId: caseReference,
+        fileName: input.scan.fileName,
+        contentType: input.scan.contentType || "application/octet-stream",
+        contentBase64: input.scan.contentBase64,
+      });
 
       await createKneeCase({
         caseReference,
@@ -102,10 +110,10 @@ export const appRouter = router({
         scanFileName: input.scan.fileName,
         scanMimeType: input.scan.contentType || "application/octet-stream",
         scanSizeBytes: input.scan.sizeBytes,
-        analysisStatus: "pending_validation",
+        analysisStatus: preflight.analysisStatus,
       });
 
-      return { caseReference, analysisStatus: "pending_validation" } as const;
+      return { caseReference, analysisStatus: preflight.analysisStatus, preflightCompleted: preflight.completed, safeMessage: preflight.safeMessage } as const;
     }),
   }),
 

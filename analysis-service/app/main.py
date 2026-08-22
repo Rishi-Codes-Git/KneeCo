@@ -1,12 +1,24 @@
 from fastapi import FastAPI, HTTPException, status
 
 from .config import load_settings
-from .contracts import AnalysisBlockedResponse, AnalysisRequest, HealthResponse, ServiceState
+from .contracts import (
+    AnalysisBlockedResponse,
+    AnalysisRequest,
+    HealthResponse,
+    ImplantCandidate,
+    ImplantRankingRequest,
+    ImplantRankingResponse,
+    ServiceState,
+    StructureState,
+    StudyPreflightRequest,
+    StudyPreflightResponse,
+)
+from .pipeline import decode_study, inspect_image, rank_by_dimension_distance
 
 app = FastAPI(
     title="KneeCo Analysis Service",
-    version="0.1.0-model-ready",
-    description="Model-ready automatic knee-MRI analysis service. Inference is disabled until validation data is available.",
+    version="0.2.0-preflight-and-ranking",
+    description="Image/PDF technical preflight and clinician-initiated implant-candidate ranking. Automatic segmentation stays disabled until a validated model is supplied.",
 )
 
 
@@ -20,10 +32,65 @@ def health() -> HealthResponse:
         model_id=settings.model_id,
         model_version=settings.model_version,
         safe_message=(
-            "Automatic MRI inference is disabled until a compatible de-identified T2 knee MRI study validates the full pipeline."
+            "Image/PDF technical preflight is available. Automatic segmentation and physical measurements remain disabled until a validated model and calibration source are configured."
             if not settings.inference_enabled
-            else "Inference is enabled for controlled validation only; clinical use remains unsupported."
+            else "Model execution is configured for controlled validation only; clinician review remains required."
         ),
+    )
+
+
+@app.post("/v1/studies/preflight", response_model=StudyPreflightResponse)
+def preflight_study(request: StudyPreflightRequest) -> StudyPreflightResponse:
+    try:
+        decoded = decode_study(
+            file_name=request.file_name,
+            content_type=request.content_type,
+            content_base64=request.content_base64,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(exc)) from exc
+
+    image_quality = inspect_image(decoded.image)
+    technically_reviewable = bool(image_quality["passes_technical_review"])
+    structure_reason = "A validated segmentation model is not configured; no anatomy has been inferred from this upload."
+    return StudyPreflightResponse(
+        case_id=request.case_id,
+        status="ready_for_validated_model" if technically_reviewable else "review_required",
+        input_kind=decoded.input_kind,
+        page_count=decoded.page_count,
+        file_sha256=decoded.file_sha256,
+        image_quality=image_quality,
+        structures=[
+            StructureState(structure="femur", state="model_not_run", reason=structure_reason),
+            StructureState(structure="tibia", state="model_not_run", reason=structure_reason),
+            StructureState(structure="medial_meniscus", state="model_not_run", reason=structure_reason),
+        ],
+        safe_message="Technical preflight completed. No segmentation, meniscus thickness, OA assessment, or millimetre measurement has been generated. A validated model plus physical spacing/calibration is required before those outputs can be shown.",
+    )
+
+
+@app.post("/v1/implant-candidates", response_model=ImplantRankingResponse)
+def rank_implant_candidates(request: ImplantRankingRequest) -> ImplantRankingResponse:
+    if not request.clinician_initiated:
+        return ImplantRankingResponse(
+            case_id=request.case_id,
+            status="not_initiated",
+            candidates=[],
+            safe_message="Implant planning remains inactive until a clinician explicitly initiates it.",
+        )
+
+    patient_dimensions = request.bone_dimensions.model_dump(exclude={"measurement_provenance"})
+    catalogue = [item.model_dump() for item in request.catalogue]
+    ranked = rank_by_dimension_distance(patient_dimensions, catalogue)
+    candidates = [
+        ImplantCandidate(rank=index + 1, **candidate)
+        for index, candidate in enumerate(ranked)
+    ]
+    return ImplantRankingResponse(
+        case_id=request.case_id,
+        status="ranked",
+        candidates=candidates,
+        safe_message="Candidates are ranked only by dimensional proximity using the clinician-supplied catalogue and verified dimensions. This is not an implant recommendation, surgical plan, or substitute for clinical judgment.",
     )
 
 
@@ -33,11 +100,11 @@ def request_analysis(request: AnalysisRequest) -> AnalysisBlockedResponse:
     if not settings.inference_enabled:
         return AnalysisBlockedResponse(
             case_id=request.case_id,
-            reason="Automatic inference has not been validated on a compatible de-identified T2 knee MRI study.",
-            next_requirement="Validate DICOM-to-NIfTI conversion, automatic segmentation, physical spacing, and clinician review before enabling inference.",
+            reason="Automatic inference has not been validated on a compatible de-identified T2 knee MRI study, and the supplied archive does not contain trained model weights.",
+            next_requirement="Install a trained, versioned segmentation model; validate input compatibility, physical spacing, masks for femur/tibia/medial meniscus, and clinician review before enabling inference.",
         )
 
     raise HTTPException(
         status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="The model runtime is intentionally not installed until controlled validation is approved.",
+        detail="A model was marked enabled but no validated segmentation runtime has been installed.",
     )
