@@ -37,3 +37,5 @@
 - [x] Verify the refined professional KneeCo entry and workspace presentation.
 - [x] Change only the KneeCo sidebar to Dusty Rose `#C97C8D` with white iconography and text, preserving the existing content layout.
 - [x] Verify the Dusty Rose sidebar contrast at desktop and mobile widths.
+- [x] Refine the sidebar using deep plum `#733963` for large surfaces and Dusty Rose `#C97C8D` for active navigation, account panels, and small accents.
+- [x] Verify the expanded mobile drawer’s dual-tone sidebar hierarchy and contrast.
