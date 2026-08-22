@@ -61,3 +61,4 @@
 - [x] Fix Home-to-Case Overview navigation so the clicked case ID determines the loaded single-case detail view.
 - [ ] Plan the next clinician workflow pages after the Case Overview navigation fix while keeping Keras-model integration deferred.
 - [x] Restore Case Overview as the complete all-cases list and create a separate selected-case detail route for row-level review.
+- [x] Remove the top-navigation New Case action and place a compact New Case control beside the Workspace label in the sidebar.
