@@ -1,6 +1,6 @@
 import { KneeCoMark } from "@/components/KneeCoMark";
 import { Button } from "@/components/ui/button";
-import { endDemoSession, getDemoClinician } from "@/lib/demoSession";
+import { endClinicianSession, getClinicianSession } from "@/lib/clinicianSession";
 import { cn } from "@/lib/utils";
 import { FolderOpenDot, House, Menu, Plus, X } from "lucide-react";
 import { ReactNode, useState } from "react";
@@ -21,15 +21,15 @@ const navigation = [
 export function KneeCoAppShell({ title, eyebrow, children }: KneeCoAppShellProps) {
   const [location, setLocation] = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const clinician = getDemoClinician(sessionStorage);
+  const clinician = getClinicianSession(sessionStorage);
 
   const go = (href: string) => {
     setLocation(href);
     setMobileOpen(false);
   };
 
-  const exitDemo = () => {
-    endDemoSession(sessionStorage);
+  const signOut = () => {
+    endClinicianSession(sessionStorage);
     setLocation("/");
   };
 
@@ -46,10 +46,10 @@ export function KneeCoAppShell({ title, eyebrow, children }: KneeCoAppShellProps
         </nav>
       </div>
       <div className="mt-auto rounded-2xl border border-[#F0E5E7] bg-[#FFFAFB] p-4">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#A08A91]">Demo clinician</p>
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#A08A91]">Clinician account</p>
         <p className="mt-2 text-sm font-extrabold text-[#413239]">{clinician?.name ?? "Dr. Asha Raman"}</p>
         <p className="mt-1 text-xs leading-5 text-[#867179]">{clinician?.clinicName ?? "Raman Orthopaedics"}</p>
-        <button type="button" onClick={exitDemo} className="mt-4 text-xs font-extrabold text-[#A6556A] hover:text-[#813E50]">Exit demo</button>
+        <button type="button" onClick={signOut} className="mt-4 text-xs font-extrabold text-[#A6556A] hover:text-[#813E50]">Sign out</button>
       </div>
       <p className="mt-5 text-center text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#A28E94]">Powered by Elro Tech</p>
     </aside>

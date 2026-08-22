@@ -32,3 +32,6 @@
 - [x] Build the Home screen with a top-right “New Case” action and a clinically useful overview.
 - [x] Build the All Cases screen and navigation state.
 - [x] Test and visually verify the mock-access and dashboard-shell experience.
+- [x] Remove all demo, hackathon, and prototype terminology from KneeCo’s entry, sidebar, and workspace language.
+- [x] Add professionally prefilled sign-in and sign-up form states that enter the application directly without external authentication.
+- [x] Verify the refined professional KneeCo entry and workspace presentation.
