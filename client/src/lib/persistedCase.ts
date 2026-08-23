@@ -39,11 +39,12 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
   let oaClassifierResult: IllustrativeCase["oaClassifierResult"] = null;
   if (kneeCase.oaClassificationJson && kneeCase.oaModelName && kneeCase.oaModelVersion) {
     try {
-      const parsed = JSON.parse(kneeCase.oaClassificationJson) as { stageLabel?: string; topClassProbability?: number };
-      if (["Normal", "MildOA", "ModerateOA", "SevereOA"].includes(parsed.stageLabel ?? "") && typeof parsed.topClassProbability === "number") {
+      const parsed = JSON.parse(kneeCase.oaClassificationJson) as { stageLabel?: string; topClassProbability?: number; stageProbabilities?: Record<string, number> };
+      if (["Normal", "MildOA", "ModerateOA", "SevereOA"].includes(parsed.stageLabel ?? "") && typeof parsed.topClassProbability === "number" && parsed.stageProbabilities) {
         oaClassifierResult = {
           stageLabel: parsed.stageLabel as NonNullable<IllustrativeCase["oaClassifierResult"]>["stageLabel"],
           topClassProbability: parsed.topClassProbability,
+          stageProbabilities: parsed.stageProbabilities,
           modelName: kneeCase.oaModelName,
           modelVersion: kneeCase.oaModelVersion,
         };

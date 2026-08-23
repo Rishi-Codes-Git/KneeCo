@@ -44,7 +44,7 @@ describe("persistedCaseToWorkspaceCase", () => {
       analysisStatus: "ready_for_review",
       oaModelName: "KneeCo OA MRI Classifier",
       oaModelVersion: "oa_mri_project_2026-08-22",
-      oaClassificationJson: JSON.stringify({ stageLabel: "ModerateOA", topClassProbability: 0.6 }),
+      oaClassificationJson: JSON.stringify({ stageLabel: "ModerateOA", topClassProbability: 0.6, stageProbabilities: { Normal: 0.1, MildOA: 0.2, ModerateOA: 0.6, SevereOA: 0.1 } }),
     });
     expect(result.oaClassifierResult).toMatchObject({ stageLabel: "ModerateOA", topClassProbability: 0.6 });
   });

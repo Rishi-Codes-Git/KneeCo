@@ -75,3 +75,4 @@
 - [x] Add automated web-backend coverage for successful OA classification persistence during case creation.
 - [x] Replace raw New Case validation JSON with concise, field-level feedback for required patient identifiers.
 - [x] Replace the oversized Knee Analysis unavailable-model canvas with a compact, clean source-study empty state and real-upload preview path.
+- [x] Replace Knee Analysis placeholder outputs with actual persisted OA classifier results and explicit non-fabricated states for unavailable anatomy measurements.

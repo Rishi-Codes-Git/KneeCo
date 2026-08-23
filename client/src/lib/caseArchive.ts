@@ -22,6 +22,7 @@ export type IllustrativeCase = {
   oaClassifierResult?: {
     stageLabel: "Normal" | "MildOA" | "ModerateOA" | "SevereOA";
     topClassProbability: number;
+    stageProbabilities: Record<string, number>;
     modelName: string;
     modelVersion: string;
   } | null;
