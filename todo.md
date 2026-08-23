@@ -95,3 +95,4 @@
 - [x] Remove segmentation controls and all associated unavailable-overlay messaging from Knee Analysis.
 - [x] Remove the Clinical Context tab and page content from Knee Analysis.
 - [x] Present Gemini visual OA assessment, anatomy descriptors, and rough image-derived measurements in a focused primary review panel.
+- [x] Remove visible third-party provider naming from the Knee Analysis workflow and replace it with KneeCo assessment language.
