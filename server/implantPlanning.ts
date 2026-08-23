@@ -71,29 +71,11 @@ function rankCatalogue(dimensions: ImplantDimensions, catalogue: Awaited<ReturnT
 }
 
 async function requestAnonymousPlanningSummary(dimensions: ImplantDimensions, rankings: RankedImplantReference[], fetchImpl: typeof fetch = fetch) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return `The closest catalogue reference pair is femoral ${rankings[0]?.femoralSize ?? "—"} and tibial ${rankings[0]?.tibialSize ?? "—"}; confirm all four dimensions before any clinical decision.`;
-  const payload = {
-    dimensions,
-    ranked_reference_pairs: rankings.map(({ rank, femoralSize, tibialSize, dimensionalProximityScore }) => ({ rank, femoralSize, tibialSize, dimensionalProximityScore })),
-  };
-  try {
-    const response = await fetchImpl("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent", {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: `Summarize the anonymous four-dimension reference ranking below in two concise sentences. Do not name a patient, diagnose, recommend surgery, or treat reference sizes as an implant order. State that clinician confirmation of dimensions is required. Data: ${JSON.stringify(payload)}` }] }],
-        generationConfig: { temperature: 0.1, maxOutputTokens: 180 },
-      }),
-      signal: AbortSignal.timeout(15_000),
-    });
-    if (!response.ok) throw new Error("Summary request failed");
-    const result = await response.json() as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };
-    const text = result.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("").trim();
-    return text || `The closest catalogue reference pair is femoral ${rankings[0]?.femoralSize ?? "—"} and tibial ${rankings[0]?.tibialSize ?? "—"}; confirm all four dimensions before any clinical decision.`;
-  } catch {
-    return `The closest catalogue reference pair is femoral ${rankings[0]?.femoralSize ?? "—"} and tibial ${rankings[0]?.tibialSize ?? "—"}; confirm all four dimensions before any clinical decision.`;
-  }
+  void dimensions;
+  void fetchImpl;
+  const reference = rankings[0]?.referenceDimensions;
+  if (!reference) return "No structured sizing reference could be prepared from the current catalogue.";
+  return `Closest catalogue reference: femoral AP ${reference.femoralApMm.toFixed(1)} mm, femoral ML ${reference.femoralWidthMm.toFixed(1)} mm, tibial AP ${reference.tibialApMm.toFixed(1)} mm, and tibial ML ${reference.tibialWidthMm.toFixed(1)} mm. Confirm all four dimensions before any clinical decision.`;
 }
 
 export async function getImplantPlanningResult(caseReference: string): Promise<ImplantPlanningResult> {

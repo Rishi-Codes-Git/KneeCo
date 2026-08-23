@@ -118,3 +118,8 @@
 - [x] Populate F001 eligible-case medial-meniscus values in the image-derived measurement panel.
 - [x] Remove the Planning Reference panel from Knee Analysis.
 - [x] Add editable report-status controls with persisted case updates.
+- [ ] Build a reusable Three.js Knee3DModule with upload-gated OAI anatomy asset loading and scene cleanup.
+- [ ] Implement Natural Anatomy, Implant Inside, Before/After, Exploded Implant, and Measurement Overlay scene modes.
+- [ ] Integrate the 3D module into Implant Analysis with case upload state, four-dimension mesh measurements, and a 3D measurement panel.
+- [x] Replace the unavailable GLB-based plan with a custom conceptual KneeCo 3D anatomy and implant scene.
+- [x] Add interactive before-surgery, after-surgery, exploded implant, and dimension-overlay modes driven by the current case measurements.
