@@ -73,3 +73,5 @@
 - [x] Configure a controlled FastAPI model runtime and verify model endpoint plus cases.create persistence contract for a review-only OA classifier result with ready-for-review status.
 - [x] Surface persisted OA classifier review output in Knee Analysis as well as Case Detail.
 - [x] Add automated web-backend coverage for successful OA classification persistence during case creation.
+- [x] Replace raw New Case validation JSON with concise, field-level feedback for required patient identifiers.
+- [x] Replace the oversized Knee Analysis unavailable-model canvas with a compact, clean source-study empty state and real-upload preview path.

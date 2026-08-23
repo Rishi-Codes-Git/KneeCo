@@ -12,6 +12,9 @@ export type PersistedKneeCase = {
   oaModelName: string | null;
   oaModelVersion: string | null;
   oaClassificationJson: string | null;
+  scanFileKey: string;
+  scanFileName: string;
+  scanMimeType: string;
   updatedAt: Date | string;
 };
 
@@ -63,6 +66,11 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
     meniscusThickness: null,
     updatedAt: Number.isNaN(timestamp.getTime()) ? "Recent" : timestamp.toISOString().slice(0, 10),
     reviewer: null,
+    sourceStudy: {
+      url: `/manus-storage/${kneeCase.scanFileKey}`,
+      fileName: kneeCase.scanFileName,
+      mimeType: kneeCase.scanMimeType,
+    },
     oaClassifierResult,
   };
 }

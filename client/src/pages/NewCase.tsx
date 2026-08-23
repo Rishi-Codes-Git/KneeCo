@@ -1,6 +1,7 @@
 import { KneeCoAppShell } from "@/components/KneeCoAppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NewCaseFieldErrors, validateNewCaseForm } from "@/lib/caseFormValidation";
 import { getMriIntakeError, maxMriIntakeBytes } from "@/lib/mriIntake";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, ArrowRight, CheckCircle2, FileUp, ImageIcon, Loader2, ShieldCheck, X } from "lucide-react";
@@ -49,9 +50,15 @@ export default function NewCase() {
   const [form, setForm] = useState<CaseForm>(initialForm);
   const [scan, setScan] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<NewCaseFieldErrors>({});
   const createCase = trpc.cases.create.useMutation();
 
-  const update = <K extends keyof CaseForm>(key: K, value: CaseForm[K]) => setForm((current) => ({ ...current, [key]: value }));
+  const update = <K extends keyof CaseForm>(key: K, value: CaseForm[K]) => {
+    setForm((current) => ({ ...current, [key]: value }));
+    if (key === "patientId" || key === "patientName" || key === "age") {
+      setFieldErrors((current) => ({ ...current, [key]: undefined }));
+    }
+  };
 
   const selectScan = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] ?? null;
@@ -69,15 +76,17 @@ export default function NewCase() {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    const validationErrors = validateNewCaseForm(form);
+    setFieldErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setError("Complete the highlighted patient details before creating the case.");
+      return;
+    }
     if (!scan) {
       setError("Attach a JPG, JPEG, PNG, or PDF knee study before creating the case.");
       return;
     }
     const age = Number(form.age);
-    if (!Number.isInteger(age) || age < 1 || age > 120) {
-      setError("Enter an age between 1 and 120 years.");
-      return;
-    }
     try {
       const contentBase64 = await fileToBase64(scan);
       createCase.mutate(
@@ -102,7 +111,7 @@ export default function NewCase() {
             toast.info(safeMessage);
             setLocation("/cases");
           },
-          onError: (mutationError) => setError(mutationError.message || "The case could not be created. Please try again."),
+          onError: () => setError("The case could not be created. Check the highlighted intake details and try again."),
         },
       );
     } catch (uploadError) {
@@ -120,8 +129,8 @@ export default function NewCase() {
           <div className="space-y-7">
             <section className="rounded-[1.6rem] border border-[#EDE3E5] bg-white p-6 shadow-[0_18px_45px_-38px_rgba(92,49,61,0.38)] sm:p-8">
               <div className="flex items-start justify-between gap-5"><div><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#A6556A]">Patient context</p><h3 className="mt-2 text-xl font-extrabold text-[#3E3036]">Essential identifiers</h3></div><span className="rounded-full bg-[#FBF0F2] px-3 py-1.5 text-[11px] font-extrabold text-[#995969]">Required</span></div>
-              <div className="mt-7 grid gap-5 sm:grid-cols-2"><label><FieldLabel>Patient ID</FieldLabel><Input required value={form.patientId} onChange={(event) => update("patientId", event.target.value)} placeholder="KC-PT-0001" className="h-12 border-[#E8DDDF] focus-visible:ring-[#C97C8D]" /></label><label><FieldLabel>Patient name</FieldLabel><Input required value={form.patientName} onChange={(event) => update("patientName", event.target.value)} placeholder="Full patient name" className="h-12 border-[#E8DDDF] focus-visible:ring-[#C97C8D]" /></label></div>
-              <div className="mt-5 grid gap-5 sm:grid-cols-3"><label><FieldLabel>Age</FieldLabel><Input required value={form.age} onChange={(event) => update("age", event.target.value)} inputMode="numeric" placeholder="Years" className="h-12 border-[#E8DDDF] focus-visible:ring-[#C97C8D]" /></label><label><FieldLabel>Sex</FieldLabel><select value={form.sex} onChange={(event) => update("sex", event.target.value as CaseForm["sex"])} className="h-12 w-full rounded-xl border border-[#E8DDDF] bg-white px-3 text-sm font-semibold text-[#4A3A40] outline-none focus:ring-2 focus:ring-[#C97C8D]"><option value="not_recorded">Not recorded</option><option value="female">Female</option><option value="male">Male</option><option value="intersex">Intersex</option></select></label><label><FieldLabel>Knee side</FieldLabel><select value={form.kneeSide} onChange={(event) => update("kneeSide", event.target.value as CaseForm["kneeSide"])} className="h-12 w-full rounded-xl border border-[#E8DDDF] bg-white px-3 text-sm font-semibold text-[#4A3A40] outline-none focus:ring-2 focus:ring-[#C97C8D]"><option value="unknown">Not recorded</option><option value="left">Left</option><option value="right">Right</option><option value="bilateral">Bilateral</option></select></label></div>
+              <div className="mt-7 grid gap-5 sm:grid-cols-2"><label><FieldLabel>Patient ID</FieldLabel><Input required aria-invalid={Boolean(fieldErrors.patientId)} aria-describedby={fieldErrors.patientId ? "patient-id-error" : undefined} value={form.patientId} onChange={(event) => update("patientId", event.target.value)} placeholder="KC-PT-0001" className="h-12 border-[#E8DDDF] focus-visible:ring-[#C97C8D]" />{fieldErrors.patientId && <span id="patient-id-error" className="mt-2 block text-xs font-semibold text-[#A04658]">{fieldErrors.patientId}</span>}</label><label><FieldLabel>Patient name</FieldLabel><Input required aria-invalid={Boolean(fieldErrors.patientName)} aria-describedby={fieldErrors.patientName ? "patient-name-error" : undefined} value={form.patientName} onChange={(event) => update("patientName", event.target.value)} placeholder="Full patient name" className="h-12 border-[#E8DDDF] focus-visible:ring-[#C97C8D]" />{fieldErrors.patientName && <span id="patient-name-error" className="mt-2 block text-xs font-semibold text-[#A04658]">{fieldErrors.patientName}</span>}</label></div>
+              <div className="mt-5 grid gap-5 sm:grid-cols-3"><label><FieldLabel>Age</FieldLabel><Input required aria-invalid={Boolean(fieldErrors.age)} aria-describedby={fieldErrors.age ? "age-error" : undefined} value={form.age} onChange={(event) => update("age", event.target.value)} inputMode="numeric" placeholder="Years" className="h-12 border-[#E8DDDF] focus-visible:ring-[#C97C8D]" />{fieldErrors.age && <span id="age-error" className="mt-2 block text-xs font-semibold text-[#A04658]">{fieldErrors.age}</span>}</label><label><FieldLabel>Sex</FieldLabel><select value={form.sex} onChange={(event) => update("sex", event.target.value as CaseForm["sex"])} className="h-12 w-full rounded-xl border border-[#E8DDDF] bg-white px-3 text-sm font-semibold text-[#4A3A40] outline-none focus:ring-2 focus:ring-[#C97C8D]"><option value="not_recorded">Not recorded</option><option value="female">Female</option><option value="male">Male</option><option value="intersex">Intersex</option></select></label><label><FieldLabel>Knee side</FieldLabel><select value={form.kneeSide} onChange={(event) => update("kneeSide", event.target.value as CaseForm["kneeSide"])} className="h-12 w-full rounded-xl border border-[#E8DDDF] bg-white px-3 text-sm font-semibold text-[#4A3A40] outline-none focus:ring-2 focus:ring-[#C97C8D]"><option value="unknown">Not recorded</option><option value="left">Left</option><option value="right">Right</option><option value="bilateral">Bilateral</option></select></label></div>
             </section>
 
             <section className="rounded-[1.6rem] border border-[#EDE3E5] bg-white p-6 shadow-[0_18px_45px_-38px_rgba(92,49,61,0.38)] sm:p-8">

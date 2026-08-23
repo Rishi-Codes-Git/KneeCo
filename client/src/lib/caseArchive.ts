@@ -14,6 +14,11 @@ export type IllustrativeCase = {
   meniscusThickness: string | null;
   updatedAt: string;
   reviewer: string | null;
+  sourceStudy?: {
+    url: string;
+    fileName: string;
+    mimeType: string;
+  } | null;
   oaClassifierResult?: {
     stageLabel: "Normal" | "MildOA" | "ModerateOA" | "SevereOA";
     topClassProbability: number;

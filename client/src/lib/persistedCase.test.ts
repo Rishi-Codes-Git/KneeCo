@@ -13,6 +13,9 @@ describe("persistedCaseToWorkspaceCase", () => {
     oaModelName: null,
     oaModelVersion: null,
     oaClassificationJson: null,
+    scanFileKey: "cases/KC-UPLOAD-001/study.png",
+    scanFileName: "study.png",
+    scanMimeType: "image/png",
     updatedAt: "2026-08-23T00:00:00.000Z",
   };
 
@@ -24,6 +27,15 @@ describe("persistedCaseToWorkspaceCase", () => {
   it("maps a stored pending case to intake complete", () => {
     const result = persistedCaseToWorkspaceCase({ ...baseCase, analysisStatus: "pending_validation" });
     expect(result).toMatchObject({ status: "intake_complete", statusLabel: "Intake complete" });
+  });
+
+  it("exposes a stored image study for the source-study preview", () => {
+    const result = persistedCaseToWorkspaceCase({ ...baseCase, analysisStatus: "pending_validation" });
+    expect(result.sourceStudy).toEqual({
+      url: "/manus-storage/cases/KC-UPLOAD-001/study.png",
+      fileName: "study.png",
+      mimeType: "image/png",
+    });
   });
 
   it("parses a stored classifier output as review-only metadata", () => {
