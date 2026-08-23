@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Box, CircleGauge, Cuboid, Layers3, Maximize2, Ruler, Rotate3D } from "lucide-react";
+import { Box, CircleGauge, Cuboid, Layers3, Ruler, Rotate3D } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -92,9 +92,9 @@ function createSceneHandles(scene: THREE.Scene, dimensions: Knee3DDimensions): S
   const implants: THREE.Object3D[] = [];
   const nativeMaterials: THREE.Material[] = [];
   const implantMaterials: THREE.Material[] = [];
-  const bone = material("#e7ddc9", { roughness: 0.38, metalness: 0.02 });
-  const cartilage = material("#d98b98", { roughness: 0.26, metalness: 0.08 });
-  const meniscus = material("#5d91aa", { roughness: 0.25, metalness: 0.12 });
+  const bone = material("#edf0ef", { roughness: 0.68, metalness: 0.03, transparent: true, opacity: 0.72, depthWrite: false });
+  const cartilage = material("#dbe6ea", { roughness: 0.34, metalness: 0.04, transparent: true, opacity: 0.58, depthWrite: false });
+  const meniscus = material("#9eafb8", { roughness: 0.32, metalness: 0.06, transparent: true, opacity: 0.7, depthWrite: false });
   nativeMaterials.push(bone, cartilage, meniscus);
 
   const nativeGroup = new THREE.Group();
@@ -120,12 +120,29 @@ function createSceneHandles(scene: THREE.Scene, dimensions: Knee3DDimensions): S
   meniscalRing.rotation.x = Math.PI / 2;
   meniscalRing.name = "meniscus";
   nativeGroup.add(femur, tibia, patella, meniscalRing);
+  const addContour = (source: THREE.Object3D) => {
+    const sourceMeshes: THREE.Mesh[] = [];
+    source.traverse((node) => {
+      const mesh = node as THREE.Mesh;
+      if (mesh.geometry) sourceMeshes.push(mesh);
+    });
+    sourceMeshes.forEach((mesh) => {
+      const contour = new THREE.Mesh(mesh.geometry, new THREE.MeshBasicMaterial({ color: "#88a0ae", wireframe: true, transparent: true, opacity: 0.11, depthWrite: false }));
+      contour.position.copy(mesh.position);
+      contour.rotation.copy(mesh.rotation);
+      contour.scale.copy(mesh.scale);
+      contour.renderOrder = 2;
+      source.add(contour);
+    });
+  };
+  addContour(femur);
+  addContour(tibia);
   scene.add(nativeGroup);
   anatomy.push(nativeGroup);
 
-  const surgicalBlue = new THREE.MeshBasicMaterial({ color: "#1378b5", depthTest: false, transparent: true, opacity: 0.98 });
-  const surgicalBlueEdge = new THREE.MeshBasicMaterial({ color: "#0d4f83", depthTest: false, transparent: true, opacity: 0.98 });
-  const insertMaterial = new THREE.MeshBasicMaterial({ color: "#f8fbff", depthTest: false, transparent: true, opacity: 0.99 });
+  const surgicalBlue = new THREE.MeshStandardMaterial({ color: "#9da9b0", metalness: 0.82, roughness: 0.22, depthTest: false });
+  const surgicalBlueEdge = new THREE.MeshStandardMaterial({ color: "#60727d", metalness: 0.9, roughness: 0.2, depthTest: false });
+  const insertMaterial = new THREE.MeshStandardMaterial({ color: "#f8fbff", metalness: 0.04, roughness: 0.22, depthTest: false, transparent: true, opacity: 0.98 });
   implantMaterials.push(surgicalBlue, surgicalBlueEdge, insertMaterial);
 
   const implantGroup = new THREE.Group();
@@ -169,8 +186,14 @@ function createSceneHandles(scene: THREE.Scene, dimensions: Knee3DDimensions): S
 function applyMode(handles: SceneHandles, mode: Knee3DMode) {
   const [anatomy] = handles.anatomy;
   const [implantGroup] = handles.implants;
+  const setImplantTargets = (positions: Record<string, THREE.Vector3>) => {
+    implantGroup.children.forEach((part) => {
+      const target = positions[part.name] ?? new THREE.Vector3();
+      part.userData.targetPosition = target;
+    });
+  };
   const resetImplant = () => {
-    implantGroup.children.forEach((part) => part.position.copy({
+    setImplantTargets({
       "left-femoral-component": new THREE.Vector3(-0.64, 0.4, 0.12),
       "right-femoral-component": new THREE.Vector3(0.64, 0.4, 0.12),
       "femoral-bridge": new THREE.Vector3(0, 0.42, 0.12),
@@ -179,7 +202,7 @@ function applyMode(handles: SceneHandles, mode: Knee3DMode) {
       "polyethylene-insert": new THREE.Vector3(0, -0.14, 0.1),
       "tibial-tray": new THREE.Vector3(0, -0.44, 0.1),
       "tibial-stem": new THREE.Vector3(0, -1.1, 0.1),
-    }[part.name] ?? new THREE.Vector3()));
+    });
   };
   resetImplant();
   handles.measurementGroup.visible = false;
@@ -207,7 +230,7 @@ function applyMode(handles: SceneHandles, mode: Knee3DMode) {
       "tibial-tray": new THREE.Vector3(0, -1.35, 0.18),
       "tibial-stem": new THREE.Vector3(0, -2.8, 0.18),
     };
-    implantGroup.children.forEach((part) => part.position.copy(offsets[part.name]));
+    setImplantTargets(offsets);
   }
   if (mode === "measurements") {
     handles.measurementGroup.visible = true;
@@ -217,7 +240,7 @@ function applyMode(handles: SceneHandles, mode: Knee3DMode) {
   anatomy.updateMatrixWorld(true);
 }
 
-export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, initialMode = "natural", onModeChange, onModelReady, onMeasurementsChange }: Knee3DModuleProps) {
+export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, initialMode = "comparison", onModeChange, onModelReady, onMeasurementsChange }: Knee3DModuleProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const handlesRef = useRef<SceneHandles | null>(null);
   const [mode, setMode] = useState<Knee3DMode>(initialMode);
@@ -233,8 +256,8 @@ export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, init
     setStatus("loading");
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("#eef4f8");
-    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-    camera.position.set(7.2, 4.2, 7.4);
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(8, 4.2, 8.5);
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
@@ -244,16 +267,16 @@ export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, init
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    controls.minDistance = 4.4;
-    controls.maxDistance = 14;
+    controls.minDistance = 5;
+    controls.maxDistance = 18;
     controls.target.set(0, -0.1, 0);
     const ambient = new THREE.HemisphereLight(0xffffff, 0x9bb7c5, 2.2);
-    const key = new THREE.DirectionalLight(0xffffff, 3.4);
+    const key = new THREE.DirectionalLight(0xffffff, 4.2);
     key.position.set(5, 7, 6);
     key.castShadow = true;
-    const fill = new THREE.DirectionalLight(0xf4b9c5, 1.1);
+    const fill = new THREE.DirectionalLight(0xc7d6df, 1.35);
     fill.position.set(-5, 2, 4);
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(3.55, 64), new THREE.MeshStandardMaterial({ color: "#dbe9ef", roughness: 0.94 }));
+    const floor = new THREE.Mesh(new THREE.CircleGeometry(3.55, 64), new THREE.MeshStandardMaterial({ color: "#dbe9ef", roughness: 0.94, transparent: true, opacity: 0.72 }));
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -4.05;
     floor.receiveShadow = true;
@@ -273,6 +296,11 @@ export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, init
     let frame = 0;
     const render = () => {
       frame = requestAnimationFrame(render);
+      handles.implants[0].children.forEach((part) => {
+        const target = part.userData.targetPosition as THREE.Vector3 | undefined;
+        if (target) part.position.lerp(target, 0.13);
+      });
+      handles.implants[0].updateMatrixWorld(true);
       controls.update();
       renderer.render(scene, camera);
     };

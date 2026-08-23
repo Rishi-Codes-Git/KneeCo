@@ -123,3 +123,4 @@
 - [ ] Integrate the 3D module into Implant Analysis with case upload state, four-dimension mesh measurements, and a 3D measurement panel.
 - [x] Replace the unavailable GLB-based plan with a custom conceptual KneeCo 3D anatomy and implant scene.
 - [x] Add interactive before-surgery, after-surgery, exploded implant, and dimension-overlay modes driven by the current case measurements.
+- [x] Refine the custom KneeCo 3D scene and interactions to match the supplied video reference.
