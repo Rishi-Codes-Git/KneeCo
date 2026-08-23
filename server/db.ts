@@ -126,4 +126,11 @@ export async function getKneeCaseByReference(caseReference: string) {
   return kneeCase;
 }
 
+export async function deleteKneeCaseByReference(caseReference: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available for case deletion");
+  const result = await db.delete(kneeCases).where(eq(kneeCases.caseReference, caseReference));
+  return result[0].affectedRows > 0;
+}
+
 // TODO: add feature queries here as your schema grows.

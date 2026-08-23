@@ -4,7 +4,7 @@ import { getAnalysisServiceStatus, requestOaClassification, requestStudyPrefligh
 import { buildCaseAnalysisPersistence } from "./caseAnalysis";
 import { extractGeminiMriReport } from "./geminiReport";
 import { reviewGeminiMriImage } from "./geminiVisualReview";
-import { createKneeCase, getKneeCaseByReference, listKneeCases, upsertClinicianProfile } from "./db";
+import { createKneeCase, deleteKneeCaseByReference, getKneeCaseByReference, listKneeCases, upsertClinicianProfile } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
@@ -80,6 +80,10 @@ export const appRouter = router({
   cases: router({
     list: publicProcedure.query(() => listKneeCases()),
     get: publicProcedure.input(z.object({ caseReference: z.string().trim().min(1).max(40) })).query(({ input }) => getKneeCaseByReference(input.caseReference)),
+    delete: publicProcedure.input(z.object({ caseReference: z.string().trim().min(1).max(40) })).mutation(async ({ input }) => {
+      const deleted = await deleteKneeCaseByReference(input.caseReference);
+      return { deleted } as const;
+    }),
     create: publicProcedure.input(newCaseInput).mutation(async ({ input }) => {
       const fileBuffer = Buffer.from(input.scan.contentBase64, "base64");
       if (!fileBuffer.length || fileBuffer.length > maxScanBytes) {

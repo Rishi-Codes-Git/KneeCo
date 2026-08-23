@@ -86,3 +86,9 @@
 - [x] Recover the supplied MRI Gemini request and persist rapid visual analysis plus planning-support suggestions for the demo workflow.
 - [x] Add clearly labelled Gemini rough image-estimate and conditional implant-planning demo output for the supplied MRI case.
 - [ ] Wire a reachable FastAPI OA-classifier service into the Node runtime so a real case creation persists Keras and Gemini results in one application flow, without a manual SQL update.
+- [x] Delete all existing stored KneeCo case records and restart the workspace with an empty case archive.
+- [x] Add clinician-controlled deletion for individual cases and a safe empty-state path back to New Case.
+- [x] Replace the Case Detail progression and status panels with direct measurement-focused Knee Analysis content.
+- [x] Remove Current Model Output, Gemini Report Extraction, and Anatomy Measurement Model cards from the visible measurement workflow.
+- [x] Replace illustrative Home dashboard case records and metrics with the real empty or persisted case workspace.
+- [x] Replace illustrative Previous Cases records with the real persisted closed-case archive after the workspace reset.

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   createKneeCase,
+  deleteKneeCaseByReference,
   getKneeCaseByReference,
   listKneeCases,
   upsertClinicianProfile,
@@ -13,6 +14,7 @@ const {
   storagePut,
 } = vi.hoisted(() => ({
   createKneeCase: vi.fn(),
+  deleteKneeCaseByReference: vi.fn(),
   getKneeCaseByReference: vi.fn(),
   listKneeCases: vi.fn(),
   upsertClinicianProfile: vi.fn(),
@@ -24,7 +26,7 @@ const {
   storagePut: vi.fn(),
 }));
 
-vi.mock("./db", () => ({ createKneeCase, getKneeCaseByReference, listKneeCases, upsertClinicianProfile }));
+vi.mock("./db", () => ({ createKneeCase, deleteKneeCaseByReference, getKneeCaseByReference, listKneeCases, upsertClinicianProfile }));
 vi.mock("./analysisService", () => ({ getAnalysisServiceStatus, requestOaClassification, requestStudyPreflight }));
 vi.mock("./geminiReport", () => ({ extractGeminiMriReport }));
 vi.mock("./geminiVisualReview", () => ({ reviewGeminiMriImage }));
@@ -36,6 +38,7 @@ import type { TrpcContext } from "./_core/context";
 describe("cases.create with OA classifier output", () => {
   beforeEach(() => {
     createKneeCase.mockReset();
+    deleteKneeCaseByReference.mockReset();
     getKneeCaseByReference.mockReset();
     listKneeCases.mockReset();
     getAnalysisServiceStatus.mockReset();
@@ -129,5 +132,13 @@ describe("cases.create with OA classifier output", () => {
     expect(JSON.parse(persisted.geminiReportJson)).toMatchObject({ documentType: "radiology_report", oaMention: "reported" });
     expect(persisted).toMatchObject({ geminiReportStatus: "extracted_for_review", geminiReportMessage: "Report extraction complete." });
     expect(persisted).toMatchObject({ geminiVisualModel: "gemini-2.5-flash", geminiVisualStatus: "visible_for_review", geminiVisualMessage: "Visual review complete." });
+  });
+
+  it("deletes the selected case reference through the clinician case-management route", async () => {
+    deleteKneeCaseByReference.mockResolvedValue(true);
+    const caller = appRouter.createCaller({} as TrpcContext);
+
+    await expect(caller.cases.delete({ caseReference: "KC-REMOVE" })).resolves.toEqual({ deleted: true });
+    expect(deleteKneeCaseByReference).toHaveBeenCalledWith("KC-REMOVE");
   });
 });
