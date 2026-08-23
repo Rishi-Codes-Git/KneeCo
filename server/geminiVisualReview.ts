@@ -101,7 +101,7 @@ function extractText(response: unknown) {
   return payload.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
 }
 
-type PlanningDimensions = { femoralApMm?: number; femoralWidthMm?: number; tibialApMm?: number; tibialWidthMm?: number };
+type PlanningDimensions = { femoralApMm?: number; femoralWidthMm?: number; tibialApMm?: number; tibialWidthMm?: number; medialMeniscusAnteriorMm?: number | null; medialMeniscusBodyMm?: number | null; medialMeniscusPosteriorMm?: number | null };
 
 function createSyntheticPresentationReview(record: {
   imageId: string;
@@ -148,9 +148,9 @@ function createSyntheticPresentationReview(record: {
       femoralApMm: planningDimensions?.femoralApMm ?? null,
       tibialWidthMm: planningDimensions?.tibialWidthMm ?? null,
       tibialApMm: planningDimensions?.tibialApMm ?? null,
-      medialMeniscusAnteriorMm: null,
-      medialMeniscusBodyMm: null,
-      medialMeniscusPosteriorMm: null,
+      medialMeniscusAnteriorMm: planningDimensions?.medialMeniscusAnteriorMm ?? null,
+      medialMeniscusBodyMm: planningDimensions?.medialMeniscusBodyMm ?? null,
+      medialMeniscusPosteriorMm: planningDimensions?.medialMeniscusPosteriorMm ?? null,
     },
     oaVisualAssessment: {
       status: isPositive ? "features_present" : "features_not_apparent",

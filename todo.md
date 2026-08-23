@@ -114,3 +114,7 @@
 - [x] Populate the four image-derived Knee Analysis values from the eligible planning dimensions used for implant reference ranking.
 - [x] Add detailed pop-up views for each ranked implant reference arrow in Implant Analysis.
 - [x] Replace simulated-looking system, component, and procedure identifiers in visible planning values with standard KneeCo planning terminology.
+- [x] Replace XS/S implant-ranking labels with the four-dimensional catalogue reference values from the current sizing dataset.
+- [x] Populate F001 eligible-case medial-meniscus values in the image-derived measurement panel.
+- [x] Remove the Planning Reference panel from Knee Analysis.
+- [x] Add editable report-status controls with persisted case updates.

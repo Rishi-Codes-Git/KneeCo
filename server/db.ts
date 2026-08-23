@@ -133,6 +133,13 @@ export async function deleteKneeCaseByReference(caseReference: string) {
   return result[0].affectedRows > 0;
 }
 
+export async function updateKneeCaseReportStatus(caseReference: string, analysisStatus: "pending_validation" | "queued" | "processing" | "ready_for_review" | "review_required" | "failed") {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available for report-status updates");
+  const result = await db.update(kneeCases).set({ analysisStatus, updatedAt: new Date() }).where(eq(kneeCases.caseReference, caseReference));
+  return result[0].affectedRows > 0;
+}
+
 export async function getPresentationTestCaseByFileName(fileName: string) {
   const db = await getDb();
   if (!db) return undefined;

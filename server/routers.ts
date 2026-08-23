@@ -4,7 +4,7 @@ import { getAnalysisServiceStatus, requestOaClassification, requestStudyPrefligh
 import { buildCaseAnalysisPersistence } from "./caseAnalysis";
 import { extractGeminiMriReport } from "./geminiReport";
 import { reviewGeminiMriImage } from "./geminiVisualReview";
-import { createKneeCase, deleteKneeCaseByReference, getKneeCaseByReference, listKneeCases, updateCaseLifecycle, updateImplantPlanStatus, upsertClinicianProfile } from "./db";
+import { createKneeCase, deleteKneeCaseByReference, getKneeCaseByReference, listKneeCases, updateCaseLifecycle, updateImplantPlanStatus, updateKneeCaseReportStatus, upsertClinicianProfile } from "./db";
 import { createImplantRanking, getImplantPlanningResult } from "./implantPlanning";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -102,6 +102,13 @@ export const appRouter = router({
     delete: publicProcedure.input(z.object({ caseReference: z.string().trim().min(1).max(40) })).mutation(async ({ input }) => {
       const deleted = await deleteKneeCaseByReference(input.caseReference);
       return { deleted } as const;
+    }),
+    setReportStatus: publicProcedure.input(z.object({
+      caseReference: z.string().trim().min(1).max(40),
+      status: z.enum(["pending_validation", "queued", "processing", "ready_for_review", "review_required", "failed"]),
+    })).mutation(async ({ input }) => {
+      const updated = await updateKneeCaseReportStatus(input.caseReference, input.status);
+      return { updated, status: input.status } as const;
     }),
     create: publicProcedure.input(newCaseInput).mutation(async ({ input }) => {
       const fileBuffer = Buffer.from(input.scan.contentBase64, "base64");
