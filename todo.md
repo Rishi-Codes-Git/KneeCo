@@ -82,3 +82,6 @@
 - [x] Present Gemini report-extraction status and friendly guidance in New Case success feedback for non-report and failed extraction outcomes.
 - [x] Add focused New Case success-feedback coverage for Gemini non-report and failed extraction responses.
 - [x] Add a Gemini MRI image visual-review pathway for labelled femur, tibia, and medial-meniscus descriptors while keeping non-calibrated estimates distinct from report-stated millimetre values.
+- [ ] Process the user-supplied knee MRI through FastAPI/Keras and Gemini visual review, then verify the persisted clinician-review outputs.
+- [x] Recover the supplied MRI Gemini request and persist rapid visual analysis plus planning-support suggestions for the demo workflow.
+- [x] Add clearly labelled Gemini rough image-estimate and conditional implant-planning demo output for the supplied MRI case.

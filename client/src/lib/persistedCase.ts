@@ -65,7 +65,17 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
     try {
       const parsed = JSON.parse(kneeCase.geminiVisualJson) as Omit<NonNullable<IllustrativeCase["geminiVisualReview"]>, "model"> & { studyType?: string };
       if (parsed.studyType === "knee_mri_image" && parsed.femur && parsed.tibia && parsed.medialMeniscus) {
-        geminiVisualReview = { model: kneeCase.geminiVisualModel, imageQuality: parsed.imageQuality, femur: parsed.femur, tibia: parsed.tibia, medialMeniscus: parsed.medialMeniscus, reviewNote: parsed.reviewNote };
+        geminiVisualReview = {
+          model: kneeCase.geminiVisualModel,
+          imageQuality: parsed.imageQuality,
+          femur: parsed.femur,
+          tibia: parsed.tibia,
+          medialMeniscus: parsed.medialMeniscus,
+          roughEstimates: parsed.roughEstimates,
+          oaVisualAssessment: parsed.oaVisualAssessment,
+          implantPlanning: parsed.implantPlanning,
+          reviewNote: parsed.reviewNote,
+        };
       }
     } catch { geminiVisualReview = null; }
   }

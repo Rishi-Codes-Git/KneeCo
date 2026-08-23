@@ -34,7 +34,7 @@ describe("extractGeminiMriReport", () => {
   it("returns only structured report-supported fields from Gemini", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     const result = await extractGeminiMriReport(input, (async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(reportResult) }] } }] }), { status: 200 })) as typeof fetch);
-    expect(result).toMatchObject({ completed: true, status: "extracted_for_review", model: "gemini-2.5-flash" });
+    expect(result).toMatchObject({ completed: true, status: "extracted_for_review", model: "gemini-3.6-flash" });
     expect(result.extraction).toMatchObject({ oaMention: "reported", medialMeniscusFinding: "Medial meniscus extrusion reported.", femoralWidthMm: null });
   });
 

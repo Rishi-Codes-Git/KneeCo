@@ -7,7 +7,10 @@ const review = {
   femur: { visibility: "visible", visualDescriptor: "Distal femoral contour is visible." },
   tibia: { visibility: "partly_visible", visualDescriptor: "Proximal tibial contour is partly visible." },
   medialMeniscus: { visibility: "not_assessable", visualDescriptor: null },
-  reviewNote: "This is a non-calibrated visual estimate requiring clinician review.",
+  roughEstimates: { scaleDetected: true, femoralWidthMm: 72, femoralApMm: 61, tibialWidthMm: 70, tibialApMm: 48, medialMeniscusAnteriorMm: null, medialMeniscusBodyMm: null, medialMeniscusPosteriorMm: null },
+  oaVisualAssessment: { status: "features_possible", descriptor: "Visual features require confirmation." },
+  implantPlanning: { status: "not_triggered", candidateSizeBand: "not_available", rationale: "No planning preview triggered." },
+  reviewNote: "These are rough image estimates requiring clinician confirmation.",
 };
 
 afterEach(() => vi.unstubAllEnvs());
@@ -18,11 +21,13 @@ describe("reviewGeminiMriImage", () => {
     expect(result).toMatchObject({ completed: false, status: "not_an_image" });
   });
 
-  it("returns relative descriptors without mm measurements", async () => {
+  it("returns rough estimates only with an explicit detected scale and non-definitive planning support", async () => {
     vi.stubEnv("GEMINI_API_KEY", "test-key");
     const result = await reviewGeminiMriImage(input, (async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text: JSON.stringify(review) }] } }] }), { status: 200 })) as typeof fetch);
     expect(result).toMatchObject({ completed: true, status: "visible_for_review" });
-    expect(JSON.stringify(result.review)).not.toMatch(/mm|millimet/iu);
+    expect(result.review?.roughEstimates.scaleDetected).toBe(true);
+    expect(result.review?.roughEstimates.femoralWidthMm).toBe(72);
+    expect(result.review?.implantPlanning.status).toBe("not_triggered");
     expect(result.review?.medialMeniscus.visibility).toBe("not_assessable");
   });
 

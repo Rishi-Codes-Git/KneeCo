@@ -81,7 +81,7 @@ const REPORT_SCHEMA = {
 
 const REPORT_PROMPT = `You are an extraction assistant for a clinician-facing knee review workflow. Read the supplied file only as a possible knee radiology report. Extract only information explicitly written in the report or clearly visible as report text. Do not diagnose, infer anatomy from an MRI image, estimate measurements, create segmentation masks, or recommend surgery or implants. If the file is an MRI image rather than a readable radiology report, return documentType "not_a_radiology_report" and set all findings and measurements to null. Return numeric values only when an explicit value in millimetres is stated in the report. Use null when a field is absent. citedReportPhrases must contain short source phrases copied or tightly quoted from the report. reviewNote must state that a clinician must verify the extracted information.`;
 
-const geminiCandidates = ["gemini-2.5-flash", "gemini-3.7-flash"];
+const geminiCandidates = ["gemini-3.6-flash", "gemini-3.5-flash"];
 
 function extractText(response: unknown) {
   const payload = response as { candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }> };

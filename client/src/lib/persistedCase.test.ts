@@ -88,7 +88,7 @@ describe("persistedCaseToWorkspaceCase", () => {
     });
   });
 
-  it("maps non-calibrated visual anatomy descriptors without creating mm values", () => {
+  it("maps labelled rough scale-based anatomy estimates for the demo workflow", () => {
     const result = persistedCaseToWorkspaceCase({
       ...baseCase,
       geminiVisualModel: "gemini-2.5-flash",
@@ -99,10 +99,14 @@ describe("persistedCaseToWorkspaceCase", () => {
         femur: { visibility: "visible", visualDescriptor: "Visible contour." },
         tibia: { visibility: "partly_visible", visualDescriptor: "Partly visible contour." },
         medialMeniscus: { visibility: "not_assessable", visualDescriptor: null },
+        roughEstimates: { scaleDetected: true, femoralWidthMm: 72, femoralApMm: 61, tibialWidthMm: 70, tibialApMm: 48, medialMeniscusAnteriorMm: null, medialMeniscusBodyMm: null, medialMeniscusPosteriorMm: null },
+        oaVisualAssessment: { status: "features_possible", descriptor: "Needs confirmation." },
+        implantPlanning: { status: "not_triggered", candidateSizeBand: "not_available", rationale: "Not triggered." },
         reviewNote: "Non-calibrated visual estimate; clinician review required.",
       }),
     });
     expect(result.geminiVisualReview).toMatchObject({ model: "gemini-2.5-flash", femur: { visibility: "visible" } });
-    expect(JSON.stringify(result.geminiVisualReview)).not.toMatch(/mm|millimet/iu);
+    expect(result.geminiVisualReview?.roughEstimates).toMatchObject({ scaleDetected: true, femoralWidthMm: 72, tibialWidthMm: 70 });
+    expect(result.geminiVisualReview?.implantPlanning.status).toBe("not_triggered");
   });
 });

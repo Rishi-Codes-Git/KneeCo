@@ -54,6 +54,18 @@ export type IllustrativeCase = {
     femur: { visibility: "visible" | "partly_visible" | "not_assessable"; visualDescriptor: string | null };
     tibia: { visibility: "visible" | "partly_visible" | "not_assessable"; visualDescriptor: string | null };
     medialMeniscus: { visibility: "visible" | "partly_visible" | "not_assessable"; visualDescriptor: string | null };
+    roughEstimates: {
+      scaleDetected: boolean;
+      femoralWidthMm: number | null;
+      femoralApMm: number | null;
+      tibialWidthMm: number | null;
+      tibialApMm: number | null;
+      medialMeniscusAnteriorMm: number | null;
+      medialMeniscusBodyMm: number | null;
+      medialMeniscusPosteriorMm: number | null;
+    };
+    oaVisualAssessment: { status: "features_not_apparent" | "features_possible" | "features_present" | "not_assessable"; descriptor: string };
+    implantPlanning: { status: "not_triggered" | "candidate_sizing_preview"; candidateSizeBand: "small" | "medium" | "large" | "not_available"; rationale: string };
     reviewNote: string;
   } | null;
   geminiVisualState?: {
