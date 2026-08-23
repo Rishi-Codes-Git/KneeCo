@@ -124,3 +124,6 @@
 - [x] Replace the unavailable GLB-based plan with a custom conceptual KneeCo 3D anatomy and implant scene.
 - [x] Add interactive before-surgery, after-surgery, exploded implant, and dimension-overlay modes driven by the current case measurements.
 - [x] Refine the custom KneeCo 3D scene and interactions to match the supplied video reference.
+- [x] Replace the primitive conceptual 3D scene with detailed anatomy and implant mesh assets for a credible generic planning visualization.
+- [x] Inspect and integrate the supplied anatomical knee GLB as the detailed anatomy layer for the 3D planning viewer.
+- [x] Source, license-check, and integrate a generic total-knee implant mesh to accompany the supplied anatomy model.

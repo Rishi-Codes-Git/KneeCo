@@ -4,6 +4,9 @@ import { Box, CircleGauge, Cuboid, Layers3, Ruler, Rotate3D } from "lucide-react
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { STLLoader } from "three/addons/loaders/STLLoader.js";
 
 export type Knee3DMode = "natural" | "implant" | "comparison" | "exploded" | "measurements";
 
@@ -26,10 +29,19 @@ type Knee3DModuleProps = {
 
 type SceneHandles = {
   anatomy: THREE.Object3D[];
+  detailedAnatomy?: THREE.Object3D;
   implants: THREE.Object3D[];
+  detailedImplant?: THREE.Group;
   measurementGroup: THREE.Group;
   nativeMaterials: THREE.Material[];
   implantMaterials: THREE.Material[];
+};
+
+const detailedKneeAssetUrl = "/manus-storage/VH_M_Knee_R_5b63d020.glb";
+const detailedImplantAssetUrls = {
+  femoral: "/manus-storage/femoral_comp_6cd24614.stl",
+  spacer: "/manus-storage/spacer_comp_6792b8e7.stl",
+  tibial: "/manus-storage/tibial_comp_fdbb74a0.stl",
 };
 
 const modes: Array<{ id: Knee3DMode; label: string; icon: typeof Rotate3D }> = [
@@ -183,30 +195,84 @@ function createSceneHandles(scene: THREE.Scene, dimensions: Knee3DDimensions): S
   return { anatomy, implants, measurementGroup, nativeMaterials, implantMaterials };
 }
 
+function prepareDetailedAnatomy(root: THREE.Object3D) {
+  const modelMaterials: THREE.Material[] = [];
+  root.name = "detailed-generic-right-knee";
+  root.traverse((node) => {
+    const mesh = node as THREE.Mesh;
+    if (!mesh.isMesh) return;
+    const label = node.name.toLowerCase();
+    const isMeniscus = label.includes("meniscus");
+    const isCartilage = label.includes("cartilage") || label.includes("condyle") || label.includes("patellar_surface");
+    const meshMaterial = new THREE.MeshStandardMaterial({
+      color: isMeniscus ? "#6f8790" : isCartilage ? "#d5e2e6" : "#f4f7f5",
+      roughness: isMeniscus ? 0.38 : isCartilage ? 0.28 : 0.48,
+      metalness: isCartilage ? 0.05 : 0.02,
+      transparent: true,
+      opacity: isMeniscus ? 0.86 : 0.78,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    mesh.material = meshMaterial;
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.renderOrder = 3;
+    modelMaterials.push(meshMaterial);
+  });
+  root.scale.set(18, 8, 26);
+  root.position.set(2.72, 3.1, 1.3);
+  return { root, modelMaterials };
+}
+
+function prepareDetailedImplant(femoralGeometry: THREE.BufferGeometry, spacerGeometry: THREE.BufferGeometry, tibialGeometry: THREE.BufferGeometry) {
+  const implantMaterials: THREE.Material[] = [];
+  const implantGroup = new THREE.Group();
+  implantGroup.name = "detailed-generic-tka-assembly";
+  implantGroup.scale.setScalar(0.053);
+  implantGroup.position.set(-1.54, -5.25, -2.5);
+  const createComponent = (name: string, geometry: THREE.BufferGeometry, meshMaterial: THREE.MeshStandardMaterial) => {
+    geometry.computeVertexNormals();
+    const mesh = new THREE.Mesh(geometry, meshMaterial);
+    mesh.name = name;
+    mesh.userData.basePosition = new THREE.Vector3();
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    mesh.renderOrder = 7;
+    implantGroup.add(mesh);
+    implantMaterials.push(meshMaterial);
+  };
+  createComponent("femoral-component", femoralGeometry, new THREE.MeshStandardMaterial({ color: "#5d747e", metalness: 0.54, roughness: 0.3 }));
+  createComponent("polyethylene-insert", spacerGeometry, new THREE.MeshStandardMaterial({ color: "#f3fbfb", metalness: 0.02, roughness: 0.23 }));
+  createComponent("tibial-component", tibialGeometry, new THREE.MeshStandardMaterial({ color: "#4b6470", metalness: 0.56, roughness: 0.32 }));
+  return { implantGroup, implantMaterials };
+}
+
 function applyMode(handles: SceneHandles, mode: Knee3DMode) {
-  const [anatomy] = handles.anatomy;
-  const [implantGroup] = handles.implants;
+  const anatomy = handles.detailedAnatomy ?? handles.anatomy[0];
+  const implantGroup = handles.detailedImplant ?? handles.implants[0];
+  const legacyBasePositions: Record<string, THREE.Vector3> = {
+    "left-femoral-component": new THREE.Vector3(-0.64, 0.4, 0.12),
+    "right-femoral-component": new THREE.Vector3(0.64, 0.4, 0.12),
+    "femoral-bridge": new THREE.Vector3(0, 0.42, 0.12),
+    "left-femoral-stem": new THREE.Vector3(-0.64, -0.05, 0.12),
+    "right-femoral-stem": new THREE.Vector3(0.64, -0.05, 0.12),
+    "polyethylene-insert": new THREE.Vector3(0, -0.14, 0.1),
+    "tibial-tray": new THREE.Vector3(0, -0.44, 0.1),
+    "tibial-stem": new THREE.Vector3(0, -1.1, 0.1),
+  };
   const setImplantTargets = (positions: Record<string, THREE.Vector3>) => {
     implantGroup.children.forEach((part) => {
-      const target = positions[part.name] ?? new THREE.Vector3();
+      const target = positions[part.name] ?? (part.userData.basePosition as THREE.Vector3 | undefined) ?? legacyBasePositions[part.name] ?? new THREE.Vector3();
       part.userData.targetPosition = target;
     });
   };
   const resetImplant = () => {
-    setImplantTargets({
-      "left-femoral-component": new THREE.Vector3(-0.64, 0.4, 0.12),
-      "right-femoral-component": new THREE.Vector3(0.64, 0.4, 0.12),
-      "femoral-bridge": new THREE.Vector3(0, 0.42, 0.12),
-      "left-femoral-stem": new THREE.Vector3(-0.64, -0.05, 0.12),
-      "right-femoral-stem": new THREE.Vector3(0.64, -0.05, 0.12),
-      "polyethylene-insert": new THREE.Vector3(0, -0.14, 0.1),
-      "tibial-tray": new THREE.Vector3(0, -0.44, 0.1),
-      "tibial-stem": new THREE.Vector3(0, -1.1, 0.1),
-    });
+    setImplantTargets(handles.detailedImplant ? {} : legacyBasePositions);
   };
   resetImplant();
   handles.measurementGroup.visible = false;
   setOpacity(handles.nativeMaterials, 1);
+  handles.anatomy.forEach((entry) => { entry.visible = entry === anatomy; });
   anatomy.visible = true;
   implantGroup.visible = false;
   if (mode === "implant") {
@@ -220,7 +286,11 @@ function applyMode(handles: SceneHandles, mode: Knee3DMode) {
   if (mode === "exploded") {
     implantGroup.visible = true;
     setOpacity(handles.nativeMaterials, 0.12);
-    const offsets: Record<string, THREE.Vector3> = {
+    const offsets: Record<string, THREE.Vector3> = handles.detailedImplant ? {
+      "femoral-component": new THREE.Vector3(0, 32, 0),
+      "polyethylene-insert": new THREE.Vector3(0, 0, 31),
+      "tibial-component": new THREE.Vector3(0, -32, 0),
+    } : {
       "left-femoral-component": new THREE.Vector3(-1.45, 1.25, 0.18),
       "right-femoral-component": new THREE.Vector3(1.45, 1.25, 0.18),
       "femoral-bridge": new THREE.Vector3(0, 1.85, 0.18),
@@ -263,6 +333,8 @@ export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, init
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.72;
     host.appendChild(renderer.domElement);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -270,13 +342,16 @@ export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, init
     controls.minDistance = 5;
     controls.maxDistance = 18;
     controls.target.set(0, -0.1, 0);
-    const ambient = new THREE.HemisphereLight(0xffffff, 0x9bb7c5, 2.2);
-    const key = new THREE.DirectionalLight(0xffffff, 4.2);
-    key.position.set(5, 7, 6);
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environmentIntensity = 0.65;
+    const ambient = new THREE.HemisphereLight(0xffffff, 0x9bb7c5, 2.6);
+    const key = new THREE.DirectionalLight(0xffffff, 5.4);
+    key.position.set(4.5, 7, 8);
     key.castShadow = true;
-    const fill = new THREE.DirectionalLight(0xc7d6df, 1.35);
-    fill.position.set(-5, 2, 4);
-    const floor = new THREE.Mesh(new THREE.CircleGeometry(3.55, 64), new THREE.MeshStandardMaterial({ color: "#dbe9ef", roughness: 0.94, transparent: true, opacity: 0.72 }));
+    const fill = new THREE.DirectionalLight(0xc7d6df, 2.15);
+    fill.position.set(-6, 3, 5);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.MeshStandardMaterial({ color: "#e3edf1", roughness: 0.96 }));
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -4.05;
     floor.receiveShadow = true;
@@ -284,6 +359,54 @@ export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, init
     const handles = createSceneHandles(scene, dimensions);
     handlesRef.current = handles;
     applyMode(handles, mode);
+    let active = true;
+    const loadDetailedAnatomy = async () => {
+      try {
+        const gltf = await new GLTFLoader().loadAsync(detailedKneeAssetUrl);
+        if (!active) {
+          disposeObject(gltf.scene);
+          return;
+        }
+        const detailed = prepareDetailedAnatomy(gltf.scene);
+        scene.add(detailed.root);
+        handles.detailedAnatomy = detailed.root;
+        handles.nativeMaterials.push(...detailed.modelMaterials);
+        applyMode(handles, mode);
+        setStatus("ready");
+        onModelReady?.();
+        onMeasurementsChange?.(dimensions);
+      } catch {
+        if (!active) return;
+        setStatus("error");
+      }
+    };
+    void loadDetailedAnatomy();
+    const loadDetailedImplant = async () => {
+      try {
+        const loader = new STLLoader();
+        const [femoralGeometry, spacerGeometry, tibialGeometry] = await Promise.all([
+          loader.loadAsync(detailedImplantAssetUrls.femoral),
+          loader.loadAsync(detailedImplantAssetUrls.spacer),
+          loader.loadAsync(detailedImplantAssetUrls.tibial),
+        ]);
+        if (!active) {
+          femoralGeometry.dispose();
+          spacerGeometry.dispose();
+          tibialGeometry.dispose();
+          return;
+        }
+        const detailed = prepareDetailedImplant(femoralGeometry, spacerGeometry, tibialGeometry);
+        scene.add(detailed.implantGroup);
+        handles.detailedImplant = detailed.implantGroup;
+        handles.implantMaterials.push(...detailed.implantMaterials);
+        handles.implants[0].visible = false;
+        applyMode(handles, mode);
+      } catch {
+        if (!active) return;
+        setStatus("error");
+      }
+    };
+    void loadDetailedImplant();
     const resize = () => {
       const { width, height } = host.getBoundingClientRect();
       renderer.setSize(Math.max(width, 1), Math.max(height, 1), false);
@@ -296,23 +419,24 @@ export function Knee3DModule({ hasUploadedStudy, studyFileName, dimensions, init
     let frame = 0;
     const render = () => {
       frame = requestAnimationFrame(render);
-      handles.implants[0].children.forEach((part) => {
+      const activeImplant = handles.detailedImplant ?? handles.implants[0];
+      activeImplant.children.forEach((part) => {
         const target = part.userData.targetPosition as THREE.Vector3 | undefined;
         if (target) part.position.lerp(target, 0.13);
       });
-      handles.implants[0].updateMatrixWorld(true);
+      activeImplant.updateMatrixWorld(true);
       controls.update();
       renderer.render(scene, camera);
     };
     render();
-    setStatus("ready");
-    onModelReady?.();
-    onMeasurementsChange?.(dimensions);
     return () => {
+      active = false;
       cancelAnimationFrame(frame);
       observer.disconnect();
       controls.dispose();
       disposeObject(scene);
+      pmrem.dispose();
+      scene.environment?.dispose();
       renderer.dispose();
       renderer.domElement.remove();
       handlesRef.current = null;
