@@ -51,6 +51,10 @@ export const kneeCases = mysqlTable("kneeCases", {
   geminiReportExtractedAt: timestamp("geminiReportExtractedAt"),
   geminiReportStatus: varchar("geminiReportStatus", { length: 40 }),
   geminiReportMessage: varchar("geminiReportMessage", { length: 700 }),
+  geminiVisualModel: varchar("geminiVisualModel", { length: 120 }),
+  geminiVisualJson: text("geminiVisualJson"),
+  geminiVisualStatus: varchar("geminiVisualStatus", { length: 40 }),
+  geminiVisualMessage: varchar("geminiVisualMessage", { length: 700 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

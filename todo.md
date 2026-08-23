@@ -81,3 +81,4 @@
 - [x] Display the persisted Gemini report-extraction state in Knee Analysis and Case Detail when no readable radiology report was found or extraction failed.
 - [x] Present Gemini report-extraction status and friendly guidance in New Case success feedback for non-report and failed extraction outcomes.
 - [x] Add focused New Case success-feedback coverage for Gemini non-report and failed extraction responses.
+- [x] Add a Gemini MRI image visual-review pathway for labelled femur, tibia, and medial-meniscus descriptors while keeping non-calibrated estimates distinct from report-stated millimetre values.

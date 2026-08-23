@@ -9,6 +9,7 @@ const {
   requestOaClassification,
   requestStudyPreflight,
   extractGeminiMriReport,
+  reviewGeminiMriImage,
   storagePut,
 } = vi.hoisted(() => ({
   createKneeCase: vi.fn(),
@@ -19,12 +20,14 @@ const {
   requestOaClassification: vi.fn(),
   requestStudyPreflight: vi.fn(),
   extractGeminiMriReport: vi.fn(),
+  reviewGeminiMriImage: vi.fn(),
   storagePut: vi.fn(),
 }));
 
 vi.mock("./db", () => ({ createKneeCase, getKneeCaseByReference, listKneeCases, upsertClinicianProfile }));
 vi.mock("./analysisService", () => ({ getAnalysisServiceStatus, requestOaClassification, requestStudyPreflight }));
 vi.mock("./geminiReport", () => ({ extractGeminiMriReport }));
+vi.mock("./geminiVisualReview", () => ({ reviewGeminiMriImage }));
 vi.mock("./storage", () => ({ storagePut }));
 
 import { appRouter } from "./routers";
@@ -39,6 +42,7 @@ describe("cases.create with OA classifier output", () => {
     requestOaClassification.mockReset();
     requestStudyPreflight.mockReset();
     extractGeminiMriReport.mockReset();
+    reviewGeminiMriImage.mockReset();
     storagePut.mockReset();
   });
 
@@ -81,6 +85,19 @@ describe("cases.create with OA classifier output", () => {
       },
       safeMessage: "Report extraction complete.",
     });
+    reviewGeminiMriImage.mockResolvedValue({
+      completed: true,
+      status: "visible_for_review",
+      model: "gemini-2.5-flash",
+      review: {
+        studyType: "knee_mri_image", imageQuality: "limited",
+        femur: { visibility: "visible", visualDescriptor: "Visible contour." },
+        tibia: { visibility: "partly_visible", visualDescriptor: "Partly visible contour." },
+        medialMeniscus: { visibility: "not_assessable", visualDescriptor: null },
+        reviewNote: "Non-calibrated visual estimate; clinician review required.",
+      },
+      safeMessage: "Visual review complete.",
+    });
     createKneeCase.mockResolvedValue(undefined);
 
     const caller = appRouter.createCaller({} as TrpcContext);
@@ -99,7 +116,7 @@ describe("cases.create with OA classifier output", () => {
       },
     });
 
-    expect(result).toMatchObject({ analysisStatus: "ready_for_review", oaClassificationCompleted: true, reportExtractionCompleted: true, safeMessage: "Report extraction complete." });
+    expect(result).toMatchObject({ analysisStatus: "ready_for_review", oaClassificationCompleted: true, reportExtractionCompleted: true, visualReviewCompleted: true, safeMessage: "Report extraction complete." });
     expect(createKneeCase).toHaveBeenCalledWith(expect.objectContaining({
       analysisStatus: "ready_for_review",
       oaModelName: "KneeCo OA MRI Classifier",
@@ -111,5 +128,6 @@ describe("cases.create with OA classifier output", () => {
     expect(persisted).toMatchObject({ geminiReportModel: "gemini-2.5-flash" });
     expect(JSON.parse(persisted.geminiReportJson)).toMatchObject({ documentType: "radiology_report", oaMention: "reported" });
     expect(persisted).toMatchObject({ geminiReportStatus: "extracted_for_review", geminiReportMessage: "Report extraction complete." });
+    expect(persisted).toMatchObject({ geminiVisualModel: "gemini-2.5-flash", geminiVisualStatus: "visible_for_review", geminiVisualMessage: "Visual review complete." });
   });
 });

@@ -17,6 +17,10 @@ describe("persistedCaseToWorkspaceCase", () => {
     geminiReportJson: null,
     geminiReportStatus: null,
     geminiReportMessage: null,
+    geminiVisualModel: null,
+    geminiVisualJson: null,
+    geminiVisualStatus: null,
+    geminiVisualMessage: null,
     scanFileKey: "cases/KC-UPLOAD-001/study.png",
     scanFileName: "study.png",
     scanMimeType: "image/png",
@@ -82,5 +86,23 @@ describe("persistedCaseToWorkspaceCase", () => {
       status: "not_a_report",
       message: "The uploaded file was not recognised as a readable knee radiology report.",
     });
+  });
+
+  it("maps non-calibrated visual anatomy descriptors without creating mm values", () => {
+    const result = persistedCaseToWorkspaceCase({
+      ...baseCase,
+      geminiVisualModel: "gemini-2.5-flash",
+      geminiVisualStatus: "visible_for_review",
+      geminiVisualMessage: "Non-calibrated visual anatomy descriptors are available.",
+      geminiVisualJson: JSON.stringify({
+        studyType: "knee_mri_image", imageQuality: "limited",
+        femur: { visibility: "visible", visualDescriptor: "Visible contour." },
+        tibia: { visibility: "partly_visible", visualDescriptor: "Partly visible contour." },
+        medialMeniscus: { visibility: "not_assessable", visualDescriptor: null },
+        reviewNote: "Non-calibrated visual estimate; clinician review required.",
+      }),
+    });
+    expect(result.geminiVisualReview).toMatchObject({ model: "gemini-2.5-flash", femur: { visibility: "visible" } });
+    expect(JSON.stringify(result.geminiVisualReview)).not.toMatch(/mm|millimet/iu);
   });
 });

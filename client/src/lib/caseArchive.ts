@@ -48,6 +48,18 @@ export type IllustrativeCase = {
     status: "not_configured" | "extracted_for_review" | "not_a_report" | "failed";
     message: string;
   } | null;
+  geminiVisualReview?: {
+    model: string;
+    imageQuality: "sufficient_for_visual_review" | "limited" | "not_assessable";
+    femur: { visibility: "visible" | "partly_visible" | "not_assessable"; visualDescriptor: string | null };
+    tibia: { visibility: "visible" | "partly_visible" | "not_assessable"; visualDescriptor: string | null };
+    medialMeniscus: { visibility: "visible" | "partly_visible" | "not_assessable"; visualDescriptor: string | null };
+    reviewNote: string;
+  } | null;
+  geminiVisualState?: {
+    status: "not_configured" | "not_an_image" | "visible_for_review" | "not_knee_mri_or_unreadable" | "failed";
+    message: string;
+  } | null;
 };
 
 export const illustrativeCases: IllustrativeCase[] = [

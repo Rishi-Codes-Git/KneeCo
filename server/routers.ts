@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getAnalysisServiceStatus, requestOaClassification, requestStudyPreflight } from "./analysisService";
 import { buildCaseAnalysisPersistence } from "./caseAnalysis";
 import { extractGeminiMriReport } from "./geminiReport";
+import { reviewGeminiMriImage } from "./geminiVisualReview";
 import { createKneeCase, getKneeCaseByReference, listKneeCases, upsertClinicianProfile } from "./db";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
@@ -111,6 +112,12 @@ export const appRouter = router({
         contentType: input.scan.contentType || "application/octet-stream",
         contentBase64: input.scan.contentBase64,
       });
+      const geminiVisualReview = await reviewGeminiMriImage({
+        caseId: caseReference,
+        fileName: input.scan.fileName,
+        contentType: input.scan.contentType || "application/octet-stream",
+        contentBase64: input.scan.contentBase64,
+      });
 
       await createKneeCase({
         caseReference,
@@ -135,6 +142,10 @@ export const appRouter = router({
         geminiReportExtractedAt: geminiReport.completed ? new Date() : null,
         geminiReportStatus: geminiReport.status,
         geminiReportMessage: geminiReport.safeMessage,
+        geminiVisualModel: geminiVisualReview.completed ? geminiVisualReview.model : null,
+        geminiVisualJson: geminiVisualReview.completed && geminiVisualReview.review ? JSON.stringify(geminiVisualReview.review) : null,
+        geminiVisualStatus: geminiVisualReview.status,
+        geminiVisualMessage: geminiVisualReview.safeMessage,
       });
 
       return {
@@ -145,6 +156,9 @@ export const appRouter = router({
         reportExtractionCompleted: geminiReport.completed,
         reportExtractionStatus: geminiReport.status,
         reportExtractionMessage: geminiReport.safeMessage,
+        visualReviewCompleted: geminiVisualReview.completed,
+        visualReviewStatus: geminiVisualReview.status,
+        visualReviewMessage: geminiVisualReview.safeMessage,
         safeMessage: geminiReport.completed ? geminiReport.safeMessage : `${analysisPersistence.safeMessage} ${geminiReport.safeMessage}`,
       } as const;
     }),
