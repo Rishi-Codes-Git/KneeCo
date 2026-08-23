@@ -26,6 +26,10 @@ export function startClinicianSession(storage: Pick<Storage, "setItem">, clinici
   storage.setItem(CLINICIAN_SESSION_KEY, JSON.stringify(clinician));
 }
 
+export function updateClinicianSession(storage: Pick<Storage, "setItem">, clinician: ClinicianSession) {
+  storage.setItem(CLINICIAN_SESSION_KEY, JSON.stringify(clinician));
+}
+
 export function endClinicianSession(storage: Pick<Storage, "removeItem">) {
   storage.removeItem(CLINICIAN_SESSION_KEY);
 }

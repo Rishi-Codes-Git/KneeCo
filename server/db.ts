@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { clinicianProfiles, InsertClinicianProfile, InsertKneeCase, InsertUser, kneeCases, presentationTestCases, users } from "../drizzle/schema";
+import { clinicianProfiles, implantCatalogue, implantPlans, InsertClinicianProfile, InsertImplantPlan, InsertKneeCase, InsertUser, kneeCases, presentationTestCases, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -138,6 +138,57 @@ export async function getPresentationTestCaseByFileName(fileName: string) {
   if (!db) return undefined;
   const [presentationTestCase] = await db.select().from(presentationTestCases).where(eq(presentationTestCases.fileName, fileName)).limit(1);
   return presentationTestCase;
+}
+
+export async function listImplantCatalogue() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(implantCatalogue);
+}
+
+export async function getImplantPlanByCaseReference(caseReference: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [plan] = await db.select().from(implantPlans).where(eq(implantPlans.caseReference, caseReference)).limit(1);
+  return plan;
+}
+
+export async function upsertImplantPlan(plan: InsertImplantPlan) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available for implant planning");
+  await db.insert(implantPlans).values(plan).onDuplicateKeyUpdate({
+    set: {
+      dimensionJson: plan.dimensionJson,
+      rankingJson: plan.rankingJson,
+      anonymousSummary: plan.anonymousSummary,
+      planningStatus: plan.planningStatus,
+      confirmedAt: plan.confirmedAt,
+      closedAt: plan.closedAt,
+      updatedAt: new Date(),
+    },
+  });
+}
+
+export async function updateCaseLifecycle(caseReference: string, lifecycle: "confirmed" | "closed") {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available for case lifecycle updates");
+  const now = new Date();
+  const update = lifecycle === "confirmed"
+    ? { caseLifecycle: lifecycle, caseConfirmedAt: now, caseClosedAt: null, updatedAt: now }
+    : { caseLifecycle: lifecycle, caseClosedAt: now, updatedAt: now };
+  const result = await db.update(kneeCases).set(update).where(eq(kneeCases.caseReference, caseReference));
+  return result[0].affectedRows > 0;
+}
+
+export async function updateImplantPlanStatus(caseReference: string, status: "confirmed" | "closed") {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available for implant plan lifecycle updates");
+  const now = new Date();
+  const update = status === "confirmed"
+    ? { planningStatus: status, confirmedAt: now, closedAt: null, updatedAt: now }
+    : { planningStatus: status, closedAt: now, updatedAt: now };
+  const result = await db.update(implantPlans).set(update).where(eq(implantPlans.caseReference, caseReference));
+  return result[0].affectedRows > 0;
 }
 
 // TODO: add feature queries here as your schema grows.

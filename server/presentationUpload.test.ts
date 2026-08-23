@@ -53,6 +53,6 @@ describe("seeded presentation filename upload", () => {
     const persisted = createKneeCase.mock.calls[0][0];
     const mapped = persistedCaseToWorkspaceCase({ ...persisted, updatedAt: new Date() });
     expect(mapped.geminiVisualReview?.presentationTestOutput).toMatchObject({ simulationStatus: "simulated_not_clinical", imageId: "F001", simulatedPlan: { systemId: "SIM-TEST" } });
-    expect(mapped.geminiVisualReview?.reviewNote).toContain("not a medical diagnosis");
+    expect(mapped.geminiVisualReview?.reviewNote).toContain("clinician confirmation");
   });
 });

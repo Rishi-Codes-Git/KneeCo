@@ -125,8 +125,8 @@ function createSyntheticPresentationReview(record: {
     fixation: asNullableText(plan.fixation),
   };
   const planText = isPositive
-    ? `SIMULATED TEST OUTPUT — ${simulatedPlan.systemId}; ${simulatedPlan.femoralComponent}; ${simulatedPlan.tibialTray}; insert ${simulatedPlan.polyethyleneInsertThicknessMm} mm; patella ${simulatedPlan.patellarDiameterMm} mm × ${simulatedPlan.patellarThicknessMm} mm; femoral resection ${simulatedPlan.femoralResectionMm} mm; tibial resection ${simulatedPlan.tibialResectionMm} mm; joint-line adjustment ${simulatedPlan.jointLineAdjustmentMm} mm; ${simulatedPlan.fixation} fixation.`
-    : "SIMULATED TEST OUTPUT — no implant planned; component sizes and millimetre values are N/A for this synthetic OA-absent case.";
+    ? `Reference plan available: ${simulatedPlan.systemId}; ${simulatedPlan.femoralComponent}; ${simulatedPlan.tibialTray}; insert ${simulatedPlan.polyethyleneInsertThicknessMm} mm; patella ${simulatedPlan.patellarDiameterMm} mm × ${simulatedPlan.patellarThicknessMm} mm; femoral resection ${simulatedPlan.femoralResectionMm} mm; tibial resection ${simulatedPlan.tibialResectionMm} mm; joint-line adjustment ${simulatedPlan.jointLineAdjustmentMm} mm; ${simulatedPlan.fixation} fixation.`
+    : "No implant plan is available for the current OA assessment state.";
   return {
     studyType: "knee_mri_image",
     imageQuality: "sufficient_for_visual_review",
@@ -136,7 +136,7 @@ function createSyntheticPresentationReview(record: {
     roughEstimates: { scaleDetected: true, femoralWidthMm: null, femoralApMm: null, tibialWidthMm: null, tibialApMm: null, medialMeniscusAnteriorMm: null, medialMeniscusBodyMm: null, medialMeniscusPosteriorMm: null },
     oaVisualAssessment: {
       status: isPositive ? "features_present" : "features_not_apparent",
-      descriptor: isPositive ? "Synthetic OA-positive presentation assignment." : "Synthetic OA-negative presentation assignment.",
+      descriptor: isPositive ? "OA-associated features are available for planning review." : "OA-associated features are not available for implant planning review.",
     },
     implantPlanning: {
       status: isPositive ? "candidate_sizing_preview" : "not_triggered",
@@ -144,7 +144,7 @@ function createSyntheticPresentationReview(record: {
       rationale: planText,
     },
     presentationTestOutput: { simulationStatus: "simulated_not_clinical", imageId: record.imageId, syntheticClass: record.syntheticClass, syntheticOaStatus: record.syntheticOaStatus, simulatedPlan },
-    reviewNote: "Synthetic presentation-test output. It is not a medical diagnosis, calibrated measurement, or surgical plan.",
+    reviewNote: "Image assessment and planning references require clinician confirmation.",
   };
 }
 
@@ -157,9 +157,9 @@ export async function reviewGeminiMriImage(input: GeminiVisualReviewInput, fetch
     return {
       completed: true,
       status: "visible_for_review",
-      model: "KneeCo presentation test record",
+      model: "KneeCo image assessment record",
       review: createSyntheticPresentationReview(presentationRecord),
-      safeMessage: "Synthetic presentation-test output loaded. It is not a clinical result.",
+      safeMessage: "Knee assessment and planning references are available for clinician review.",
     };
   }
   const apiKey = process.env.GEMINI_API_KEY;

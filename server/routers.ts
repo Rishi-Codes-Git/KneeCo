@@ -4,7 +4,8 @@ import { getAnalysisServiceStatus, requestOaClassification, requestStudyPrefligh
 import { buildCaseAnalysisPersistence } from "./caseAnalysis";
 import { extractGeminiMriReport } from "./geminiReport";
 import { reviewGeminiMriImage } from "./geminiVisualReview";
-import { createKneeCase, deleteKneeCaseByReference, getKneeCaseByReference, listKneeCases, upsertClinicianProfile } from "./db";
+import { createKneeCase, deleteKneeCaseByReference, getKneeCaseByReference, listKneeCases, updateCaseLifecycle, updateImplantPlanStatus, upsertClinicianProfile } from "./db";
+import { createImplantRanking, getImplantPlanningResult } from "./implantPlanning";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
@@ -61,6 +62,24 @@ export const appRouter = router({
   }),
   analysis: router({
     serviceStatus: publicProcedure.query(() => getAnalysisServiceStatus()),
+  }),
+  implant: router({
+    get: publicProcedure.input(z.object({ caseReference: z.string().trim().min(1).max(40) })).query(({ input }) => getImplantPlanningResult(input.caseReference)),
+    rank: publicProcedure.input(z.object({ caseReference: z.string().trim().min(1).max(40) })).mutation(({ input }) => createImplantRanking(input.caseReference)),
+    confirm: publicProcedure.input(z.object({ caseReference: z.string().trim().min(1).max(40) })).mutation(async ({ input }) => {
+      const plan = await getImplantPlanningResult(input.caseReference);
+      if (!plan.eligible || !plan.rankings.length) throw new Error("Create and review implant candidates before confirming this case.");
+      await updateCaseLifecycle(input.caseReference, "confirmed");
+      await updateImplantPlanStatus(input.caseReference, "confirmed");
+      return { confirmed: true } as const;
+    }),
+    close: publicProcedure.input(z.object({ caseReference: z.string().trim().min(1).max(40) })).mutation(async ({ input }) => {
+      const plan = await getImplantPlanningResult(input.caseReference);
+      if (!plan.eligible || !plan.rankings.length) throw new Error("Create and review implant candidates before closing this case.");
+      await updateCaseLifecycle(input.caseReference, "closed");
+      await updateImplantPlanStatus(input.caseReference, "closed");
+      return { closed: true } as const;
+    }),
   }),
   profile: router({
     completeSignup: protectedProcedure.input(z.object({

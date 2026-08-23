@@ -10,7 +10,7 @@ export default function PreviousCases() {
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
   const persistedCases = trpc.cases.list.useQuery();
-  const closedCases = useMemo(() => (persistedCases.data ?? []).map(persistedCaseToWorkspaceCase).filter((record) => record.status === "report_signed"), [persistedCases.data]);
+  const closedCases = useMemo(() => (persistedCases.data ?? []).filter((record) => record.caseLifecycle === "closed").map(persistedCaseToWorkspaceCase), [persistedCases.data]);
   const visibleCases = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return closedCases.filter((record) => !normalized || [record.id, record.patientLabel, record.kneeSide].some((value) => value.toLowerCase().includes(normalized)));

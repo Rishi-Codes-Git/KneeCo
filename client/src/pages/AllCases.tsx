@@ -32,7 +32,7 @@ export default function AllCases() {
     },
     onError: () => toast.error("Case deletion could not complete. Please try again."),
   });
-  const workspaceCases = useMemo(() => (persistedCases.data ?? []).map(persistedCaseToWorkspaceCase), [persistedCases.data]);
+  const workspaceCases = useMemo(() => (persistedCases.data ?? []).filter((record) => record.caseLifecycle !== "closed").map(persistedCaseToWorkspaceCase), [persistedCases.data]);
   const visibleCases = useMemo(() => {
     const normalized = query.trim().toLowerCase();
     return workspaceCases.filter((record) => {

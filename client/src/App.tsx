@@ -10,6 +10,8 @@ import PreviousCases from "./pages/PreviousCases";
 import Home from "./pages/Home";
 import HomeDashboard from "./pages/HomeDashboard";
 import NewCase from "./pages/NewCase";
+import ImplantAnalysis from "./pages/ImplantAnalysis";
+import Settings from "./pages/Settings";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -21,6 +23,9 @@ function Router() {
       <Route path={"/cases/:caseId"} component={KneeAnalysis} />
       <Route path={"/cases"} component={AllCases} />
       <Route path={"/previous-cases"} component={PreviousCases} />
+      <Route path={"/implant-analysis/:caseId"} component={ImplantAnalysis} />
+      <Route path={"/implant-analysis"} component={ImplantAnalysis} />
+      <Route path={"/settings"} component={Settings} />
       <Route path={"/new-case"} component={NewCase} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}

@@ -102,3 +102,11 @@
 - [x] Add an end-to-end creation test for a seeded presentation filename that verifies the persisted UI-facing synthetic output.
 - [x] Add an in-repository case-creation regression test that verifies the mapped structured synthetic output and explicit non-clinical label for a seeded presentation filename.
 - [x] Add an in-repository regression test that exercises the real filename-keyed presentation lookup for an actual seeded presentation filename.
+- [x] Add Implant Analysis to the workspace with a placeholder 3D planning view and four-dimension implant fit review.
+- [x] Restrict synthetic presentation implant rankings and planning actions to the OA-present F001 and M001 cases.
+- [x] Add case confirmation and closure lifecycle controls for eligible implant-planning cases.
+- [x] Add a clinician Settings page with editable profile and workspace preferences.
+- [x] Reorder the sidebar as Home, Case Overview, Implant Analysis, Previous Cases, and Settings at the bottom.
+- [x] Replace visible synthetic and simulated wording with standard KneeCo assessment and implant-planning language while retaining background eligibility controls.
+- [x] Remove all visible Presentation Test Case wording and use standard KneeCo assessment and implant-planning language while retaining background eligibility controls.
+- [x] Add editable, persisted workspace preferences to Settings for review and notification behavior.

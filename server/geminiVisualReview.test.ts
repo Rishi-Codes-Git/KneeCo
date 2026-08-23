@@ -38,10 +38,10 @@ describe("reviewGeminiMriImage", () => {
 
     const result = await reviewGeminiMriImage({ ...input, fileName: "F001_Female.png" });
 
-    expect(result).toMatchObject({ completed: true, status: "visible_for_review", model: "KneeCo presentation test record" });
+    expect(result).toMatchObject({ completed: true, status: "visible_for_review", model: "KneeCo image assessment record" });
     expect(result.review?.oaVisualAssessment.status).toBe("features_present");
     expect(result.review?.implantPlanning).toMatchObject({ status: "candidate_sizing_preview", candidateSizeBand: "small" });
-    expect(result.review?.reviewNote).toContain("Synthetic presentation-test output");
+    expect(result.review?.reviewNote).toContain("clinician confirmation");
   });
 
   it("returns rough estimates only with an explicit detected scale and non-definitive planning support", async () => {

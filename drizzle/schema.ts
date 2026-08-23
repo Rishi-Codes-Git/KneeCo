@@ -1,4 +1,4 @@
-import { int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { double, int, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
 
 /** Core user table backing the existing Manus OAuth flow. */
 export const users = mysqlTable("users", {
@@ -55,6 +55,9 @@ export const kneeCases = mysqlTable("kneeCases", {
   geminiVisualJson: text("geminiVisualJson"),
   geminiVisualStatus: varchar("geminiVisualStatus", { length: 40 }),
   geminiVisualMessage: varchar("geminiVisualMessage", { length: 700 }),
+  caseLifecycle: mysqlEnum("caseLifecycle", ["active", "confirmed", "closed"]).default("active").notNull(),
+  caseConfirmedAt: timestamp("caseConfirmedAt"),
+  caseClosedAt: timestamp("caseClosedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -69,8 +72,38 @@ export const presentationTestCases = mysqlTable("presentationTestCases", {
   weightKg: int("weightKg").notNull(),
   syntheticOaStatus: mysqlEnum("syntheticOaStatus", ["present", "absent"]).notNull(),
   syntheticClass: varchar("syntheticClass", { length: 80 }).notNull(),
+  syntheticDimensionsJson: text("syntheticDimensionsJson"),
   simulatedPlanJson: text("simulatedPlanJson").notNull(),
   simulationStatus: mysqlEnum("simulationStatus", ["simulated_not_clinical"]).default("simulated_not_clinical").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Anonymous reference rows imported from the user-provided implant sizing dataset. */
+export const implantCatalogue = mysqlTable("implantCatalogue", {
+  id: int("id").autoincrement().primaryKey(),
+  datasetKey: varchar("datasetKey", { length: 80 }).notNull().unique(),
+  age: int("age").notNull(),
+  sex: mysqlEnum("sex", ["female", "male"]).notNull(),
+  femoralApMm: double("femoralApMm").notNull(),
+  femoralWidthMm: double("femoralWidthMm").notNull(),
+  tibialApMm: double("tibialApMm").notNull(),
+  tibialWidthMm: double("tibialWidthMm").notNull(),
+  suggestedFemoralSize: varchar("suggestedFemoralSize", { length: 30 }).notNull(),
+  suggestedTibialSize: varchar("suggestedTibialSize", { length: 30 }).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Anonymous, clinician-controlled implant ranking state; not an operative plan. */
+export const implantPlans = mysqlTable("implantPlans", {
+  id: int("id").autoincrement().primaryKey(),
+  caseReference: varchar("caseReference", { length: 40 }).notNull().unique(),
+  dimensionJson: text("dimensionJson").notNull(),
+  rankingJson: text("rankingJson").notNull(),
+  anonymousSummary: text("anonymousSummary"),
+  planningStatus: mysqlEnum("planningStatus", ["ready_for_review", "confirmed", "closed"]).default("ready_for_review").notNull(),
+  confirmedAt: timestamp("confirmedAt"),
+  closedAt: timestamp("closedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -83,3 +116,7 @@ export type KneeCase = typeof kneeCases.$inferSelect;
 export type InsertKneeCase = typeof kneeCases.$inferInsert;
 export type PresentationTestCase = typeof presentationTestCases.$inferSelect;
 export type InsertPresentationTestCase = typeof presentationTestCases.$inferInsert;
+export type ImplantCatalogueRow = typeof implantCatalogue.$inferSelect;
+export type InsertImplantCatalogueRow = typeof implantCatalogue.$inferInsert;
+export type ImplantPlan = typeof implantPlans.$inferSelect;
+export type InsertImplantPlan = typeof implantPlans.$inferInsert;
