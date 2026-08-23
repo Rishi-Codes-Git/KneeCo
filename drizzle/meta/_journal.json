@@ -29,6 +29,20 @@
       "when": 1787435100137,
       "tag": "0003_secret_leo",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1787448132689,
+      "tag": "0004_small_electro",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1787448431977,
+      "tag": "0005_acoustic_warpath",
+      "breakpoints": true
     }
   ]
 }

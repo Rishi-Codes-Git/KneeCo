@@ -8,6 +8,7 @@ const {
   getAnalysisServiceStatus,
   requestOaClassification,
   requestStudyPreflight,
+  extractGeminiMriReport,
   storagePut,
 } = vi.hoisted(() => ({
   createKneeCase: vi.fn(),
@@ -17,11 +18,13 @@ const {
   getAnalysisServiceStatus: vi.fn(),
   requestOaClassification: vi.fn(),
   requestStudyPreflight: vi.fn(),
+  extractGeminiMriReport: vi.fn(),
   storagePut: vi.fn(),
 }));
 
 vi.mock("./db", () => ({ createKneeCase, getKneeCaseByReference, listKneeCases, upsertClinicianProfile }));
 vi.mock("./analysisService", () => ({ getAnalysisServiceStatus, requestOaClassification, requestStudyPreflight }));
+vi.mock("./geminiReport", () => ({ extractGeminiMriReport }));
 vi.mock("./storage", () => ({ storagePut }));
 
 import { appRouter } from "./routers";
@@ -35,6 +38,7 @@ describe("cases.create with OA classifier output", () => {
     getAnalysisServiceStatus.mockReset();
     requestOaClassification.mockReset();
     requestStudyPreflight.mockReset();
+    extractGeminiMriReport.mockReset();
     storagePut.mockReset();
   });
 
@@ -52,6 +56,30 @@ describe("cases.create with OA classifier output", () => {
         topClassProbability: 0.6,
       },
       safeMessage: "Review only.",
+    });
+    extractGeminiMriReport.mockResolvedValue({
+      completed: true,
+      status: "extracted_for_review",
+      model: "gemini-2.5-flash",
+      extraction: {
+        documentType: "radiology_report",
+        summary: "Report summary.",
+        oaMention: "reported",
+        oaSeverity: "mild",
+        femurFinding: null,
+        tibiaFinding: null,
+        medialMeniscusFinding: "Reported finding.",
+        femoralWidthMm: null,
+        femoralApMm: null,
+        tibialWidthMm: null,
+        tibialApMm: null,
+        medialMeniscusAnteriorMm: null,
+        medialMeniscusBodyMm: null,
+        medialMeniscusPosteriorMm: null,
+        citedReportPhrases: ["Reported finding"],
+        reviewNote: "Verify clinically.",
+      },
+      safeMessage: "Report extraction complete.",
     });
     createKneeCase.mockResolvedValue(undefined);
 
@@ -71,7 +99,7 @@ describe("cases.create with OA classifier output", () => {
       },
     });
 
-    expect(result).toMatchObject({ analysisStatus: "ready_for_review", oaClassificationCompleted: true, safeMessage: "Review only." });
+    expect(result).toMatchObject({ analysisStatus: "ready_for_review", oaClassificationCompleted: true, reportExtractionCompleted: true, safeMessage: "Report extraction complete." });
     expect(createKneeCase).toHaveBeenCalledWith(expect.objectContaining({
       analysisStatus: "ready_for_review",
       oaModelName: "KneeCo OA MRI Classifier",
@@ -80,5 +108,8 @@ describe("cases.create with OA classifier output", () => {
     const persisted = createKneeCase.mock.calls[0][0];
     expect(JSON.parse(persisted.oaClassificationJson)).toMatchObject({ stageLabel: "ModerateOA", topClassProbability: 0.6 });
     expect(persisted.oaClassifiedAt).toBeInstanceOf(Date);
+    expect(persisted).toMatchObject({ geminiReportModel: "gemini-2.5-flash" });
+    expect(JSON.parse(persisted.geminiReportJson)).toMatchObject({ documentType: "radiology_report", oaMention: "reported" });
+    expect(persisted).toMatchObject({ geminiReportStatus: "extracted_for_review", geminiReportMessage: "Report extraction complete." });
   });
 });

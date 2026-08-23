@@ -26,6 +26,28 @@ export type IllustrativeCase = {
     modelName: string;
     modelVersion: string;
   } | null;
+  geminiReportResult?: {
+    model: string;
+    summary: string | null;
+    oaMention: "reported" | "not_reported" | "unclear";
+    oaSeverity: string | null;
+    femurFinding: string | null;
+    tibiaFinding: string | null;
+    medialMeniscusFinding: string | null;
+    femoralWidthMm: number | null;
+    femoralApMm: number | null;
+    tibialWidthMm: number | null;
+    tibialApMm: number | null;
+    medialMeniscusAnteriorMm: number | null;
+    medialMeniscusBodyMm: number | null;
+    medialMeniscusPosteriorMm: number | null;
+    citedReportPhrases: string[];
+    reviewNote: string;
+  } | null;
+  geminiReportState?: {
+    status: "not_configured" | "extracted_for_review" | "not_a_report" | "failed";
+    message: string;
+  } | null;
 };
 
 export const illustrativeCases: IllustrativeCase[] = [

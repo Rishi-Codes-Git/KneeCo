@@ -12,6 +12,10 @@ export type PersistedKneeCase = {
   oaModelName: string | null;
   oaModelVersion: string | null;
   oaClassificationJson: string | null;
+  geminiReportModel: string | null;
+  geminiReportJson: string | null;
+  geminiReportStatus: string | null;
+  geminiReportMessage: string | null;
   scanFileKey: string;
   scanFileName: string;
   scanMimeType: string;
@@ -37,6 +41,11 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
   const isFailed = kneeCase.analysisStatus === "failed";
   const timestamp = new Date(kneeCase.updatedAt);
   let oaClassifierResult: IllustrativeCase["oaClassifierResult"] = null;
+  let geminiReportResult: IllustrativeCase["geminiReportResult"] = null;
+  let geminiReportState: IllustrativeCase["geminiReportState"] = null;
+  if (kneeCase.geminiReportStatus && kneeCase.geminiReportMessage && ["not_configured", "extracted_for_review", "not_a_report", "failed"].includes(kneeCase.geminiReportStatus)) {
+    geminiReportState = { status: kneeCase.geminiReportStatus as NonNullable<IllustrativeCase["geminiReportState"]>["status"], message: kneeCase.geminiReportMessage };
+  }
   if (kneeCase.oaClassificationJson && kneeCase.oaModelName && kneeCase.oaModelVersion) {
     try {
       const parsed = JSON.parse(kneeCase.oaClassificationJson) as { stageLabel?: string; topClassProbability?: number; stageProbabilities?: Record<string, number> };
@@ -51,6 +60,16 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
       }
     } catch {
       oaClassifierResult = null;
+    }
+  }
+  if (kneeCase.geminiReportJson && kneeCase.geminiReportModel) {
+    try {
+      const parsed = JSON.parse(kneeCase.geminiReportJson) as Omit<NonNullable<IllustrativeCase["geminiReportResult"]>, "model">;
+      if (parsed && typeof parsed === "object" && ["reported", "not_reported", "unclear"].includes(parsed.oaMention) && Array.isArray(parsed.citedReportPhrases)) {
+        geminiReportResult = { ...parsed, model: kneeCase.geminiReportModel };
+      }
+    } catch {
+      geminiReportResult = null;
     }
   }
   return {
@@ -73,5 +92,7 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
       mimeType: kneeCase.scanMimeType,
     },
     oaClassifierResult,
+    geminiReportResult,
+    geminiReportState,
   };
 }

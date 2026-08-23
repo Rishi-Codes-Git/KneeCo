@@ -2,6 +2,7 @@ import { KneeCoAppShell } from "@/components/KneeCoAppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewCaseFieldErrors, validateNewCaseForm } from "@/lib/caseFormValidation";
+import { getCaseCreationFeedback } from "@/lib/caseSuccessFeedback";
 import { getMriIntakeError, maxMriIntakeBytes } from "@/lib/mriIntake";
 import { trpc } from "@/lib/trpc";
 import { ArrowLeft, ArrowRight, CheckCircle2, FileUp, ImageIcon, Loader2, ShieldCheck, X } from "lucide-react";
@@ -106,12 +107,13 @@ export default function NewCase() {
           },
         },
         {
-          onSuccess: ({ caseReference, safeMessage }) => {
-            toast.success(`Case ${caseReference} has been created.`);
-            toast.info(safeMessage);
+          onSuccess: ({ caseReference, safeMessage, reportExtractionStatus, reportExtractionMessage }) => {
+            const feedback = getCaseCreationFeedback({ caseReference, safeMessage, reportExtractionStatus, reportExtractionMessage });
+            toast.success(feedback.title);
+            toast.info(feedback.detail);
             setLocation("/cases");
           },
-          onError: () => setError("The case could not be created. Check the highlighted intake details and try again."),
+          onError: () => setError("KneeCo could not complete this case intake. Check the required details and file, then try again. No unreviewed findings were saved."),
         },
       );
     } catch (uploadError) {
@@ -123,7 +125,7 @@ export default function NewCase() {
     <KneeCoAppShell eyebrow="Clinical intake" title="New Case">
       <div className="mx-auto max-w-6xl">
         <button type="button" onClick={() => setLocation("/home")} className="mb-6 flex items-center gap-2 text-sm font-extrabold text-[#86646D] transition hover:text-[#733963]"><ArrowLeft className="h-4 w-4" />Back to Home</button>
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#A6556A]">A precise starting point</p><h2 className="font-kneeco-display mt-3 text-4xl tracking-[-0.04em] text-[#352C30]">Create a clinical case.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-[#7A676E]">Record the patient context and attach the knee MRI that will enter KneeCo’s reviewable analysis pathway.</p></div><div className="rounded-xl border border-[#F1E4E7] bg-white px-4 py-3 text-sm text-[#795F67]"><span className="font-extrabold text-[#A6556A]">Step 1 of 2</span><span className="ml-2">Intake and scan attachment</span></div></div>
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><p className="text-xs font-extrabold uppercase tracking-[0.17em] text-[#A6556A]">A precise starting point</p><h2 className="font-kneeco-display mt-3 text-4xl tracking-[-0.04em] text-[#352C30]">Create a clinical case.</h2><p className="mt-3 max-w-2xl text-sm leading-6 text-[#7A676E]">Record patient context and attach a knee MRI image or readable radiology report for KneeCo’s clinician-review workflow.</p></div><div className="rounded-xl border border-[#F1E4E7] bg-white px-4 py-3 text-sm text-[#795F67]"><span className="font-extrabold text-[#A6556A]">Step 1 of 2</span><span className="ml-2">Intake and study attachment</span></div></div>
 
         <form onSubmit={submit} className="grid gap-7 lg:grid-cols-[1fr_340px]">
           <div className="space-y-7">
@@ -139,13 +141,13 @@ export default function NewCase() {
             </section>
 
             <section className="rounded-[1.6rem] border border-[#EDE3E5] bg-white p-6 shadow-[0_18px_45px_-38px_rgba(92,49,61,0.38)] sm:p-8">
-              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#A6556A]">Knee study attachment</p><h3 className="mt-2 text-xl font-extrabold text-[#3E3036]">Attach image or PDF</h3><p className="mt-2 text-sm leading-6 text-[#7D6A71]">KneeCo accepts JPG, JPEG, PNG, or PDF studies for technical preflight and later clinician-reviewed analysis. Maximum intake size: 20 MB.</p>
+              <p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#A6556A]">Knee study attachment</p><h3 className="mt-2 text-xl font-extrabold text-[#3E3036]">Attach MRI image or radiology report</h3><p className="mt-2 text-sm leading-6 text-[#7D6A71]">KneeCo accepts JPG, JPEG, PNG, or PDF. MRI images enter FastAPI/Keras review; readable radiology report images or PDFs are also sent securely to Gemini for source-cited extraction. Maximum intake size: 20 MB.</p>
               <label className="mt-6 flex min-h-40 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-[#D9B8C0] bg-[#FFFAFB] px-6 text-center transition hover:border-[#C97C8D] hover:bg-[#FFF7F8]"><input type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={selectScan} className="sr-only" /><FileUp className="h-7 w-7 text-[#A6556A]" /><span className="mt-3 text-sm font-extrabold text-[#513D44]">Choose knee image or PDF</span><span className="mt-1 text-xs text-[#8A747B]">JPG · JPEG · PNG · PDF</span></label>
               {scan && <div className="mt-4 flex items-center justify-between rounded-xl border border-[#E7D8DC] bg-white px-4 py-3"><div className="flex min-w-0 items-center gap-3"><ImageIcon className="h-5 w-5 shrink-0 text-[#A6556A]" /><div className="min-w-0"><p className="truncate text-sm font-extrabold text-[#4A393F]">{scan.name}</p><p className="mt-0.5 text-xs text-[#887279]">{(scan.size / 1024 / 1024).toFixed(2)} MB · Ready to attach</p></div></div><button type="button" onClick={() => setScan(null)} className="rounded-lg p-1.5 text-[#A6556A] hover:bg-[#FBF0F2]" aria-label="Remove selected MRI"><X className="h-4 w-4" /></button></div>}
             </section>
           </div>
 
-          <aside className="h-fit rounded-[1.6rem] border border-[#E5D8DC] bg-white p-6 shadow-[0_18px_45px_-38px_rgba(92,49,61,0.38)] lg:sticky lg:top-24"><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#A6556A]">Case readiness</p><h3 className="mt-3 text-xl font-extrabold text-[#3E3036]">Ready when complete.</h3><div className="mt-6 space-y-4 text-sm text-[#735F67]"><p className="flex gap-3"><CheckCircle2 className={`h-5 w-5 shrink-0 ${form.patientId && form.patientName ? "text-[#A6556A]" : "text-[#D9C8CC]"}`} />Patient identity</p><p className="flex gap-3"><CheckCircle2 className={`h-5 w-5 shrink-0 ${form.age && form.kneeSide !== "unknown" ? "text-[#A6556A]" : "text-[#D9C8CC]"}`} />Clinical context</p><p className="flex gap-3"><CheckCircle2 className={`h-5 w-5 shrink-0 ${scan ? "text-[#A6556A]" : "text-[#D9C8CC]"}`} />Image or PDF study</p></div><div className="mt-7 flex gap-2 rounded-xl border border-[#F0E5E7] bg-[#FFFAFB] p-4 text-xs leading-5 text-[#79666D]"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#A6556A]" /><p>The study is stored securely and undergoes technical preflight when FastAPI is available. Anatomy segmentation, millimetre measurements, and implant candidates remain clinician-reviewed and require a validated model.</p></div>{error && <p role="alert" className="mt-5 rounded-xl bg-[#FFF0F1] p-3 text-sm font-semibold text-[#A04658]">{error}</p>}<Button disabled={createCase.isPending} type="submit" className="mt-6 h-12 w-full rounded-xl bg-[#C97C8D] text-sm font-extrabold text-white hover:bg-[#A6556A] disabled:opacity-70">{createCase.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating case</> : <>Create Case & Preflight<ArrowRight className="ml-2 h-4 w-4" /></>}</Button><p className="mt-4 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-[#A18A91]">Decision support only</p></aside>
+          <aside className="h-fit rounded-[1.6rem] border border-[#E5D8DC] bg-white p-6 shadow-[0_18px_45px_-38px_rgba(92,49,61,0.38)] lg:sticky lg:top-24"><p className="text-xs font-extrabold uppercase tracking-[0.16em] text-[#A6556A]">Case readiness</p><h3 className="mt-3 text-xl font-extrabold text-[#3E3036]">Ready when complete.</h3><div className="mt-6 space-y-4 text-sm text-[#735F67]"><p className="flex gap-3"><CheckCircle2 className={`h-5 w-5 shrink-0 ${form.patientId && form.patientName ? "text-[#A6556A]" : "text-[#D9C8CC]"}`} />Patient identity</p><p className="flex gap-3"><CheckCircle2 className={`h-5 w-5 shrink-0 ${form.age && form.kneeSide !== "unknown" ? "text-[#A6556A]" : "text-[#D9C8CC]"}`} />Clinical context</p><p className="flex gap-3"><CheckCircle2 className={`h-5 w-5 shrink-0 ${scan ? "text-[#A6556A]" : "text-[#D9C8CC]"}`} />Image or PDF study</p></div><div className="mt-7 flex gap-2 rounded-xl border border-[#F0E5E7] bg-[#FFFAFB] p-4 text-xs leading-5 text-[#79666D]"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#A6556A]" /><p>The study is stored securely. FastAPI/Keras performs technical and classifier review; readable reports are sent to Gemini for source-cited extraction. Anatomy segmentation, measurements, and implant candidates remain clinician-reviewed and require a validated model.</p></div>{error && <p role="alert" className="mt-5 rounded-xl bg-[#FFF0F1] p-3 text-sm font-semibold text-[#A04658]">{error}</p>}<Button disabled={createCase.isPending} type="submit" className="mt-6 h-12 w-full rounded-xl bg-[#C97C8D] text-sm font-extrabold text-white hover:bg-[#A6556A] disabled:opacity-70">{createCase.isPending ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Creating case</> : <>Create Case & Analyse<ArrowRight className="ml-2 h-4 w-4" /></>}</Button><p className="mt-4 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-[#A18A91]">Decision support only</p></aside>
         </form>
       </div>
     </KneeCoAppShell>

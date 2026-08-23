@@ -76,3 +76,8 @@
 - [x] Replace raw New Case validation JSON with concise, field-level feedback for required patient identifiers.
 - [x] Replace the oversized Knee Analysis unavailable-model canvas with a compact, clean source-study empty state and real-upload preview path.
 - [x] Replace Knee Analysis placeholder outputs with actual persisted OA classifier results and explicit non-fabricated states for unavailable anatomy measurements.
+- [x] Add secure server-side Gemini MRI-report extraction alongside the existing FastAPI/Keras workflow, with structured clinician-review results and graceful errors.
+- [x] Surface Gemini report-extraction status and a clinician-friendly safe message after case creation when no readable report is found or extraction fails.
+- [x] Display the persisted Gemini report-extraction state in Knee Analysis and Case Detail when no readable radiology report was found or extraction failed.
+- [x] Present Gemini report-extraction status and friendly guidance in New Case success feedback for non-report and failed extraction outcomes.
+- [x] Add focused New Case success-feedback coverage for Gemini non-report and failed extraction responses.

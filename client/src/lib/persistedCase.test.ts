@@ -13,6 +13,10 @@ describe("persistedCaseToWorkspaceCase", () => {
     oaModelName: null,
     oaModelVersion: null,
     oaClassificationJson: null,
+    geminiReportModel: null,
+    geminiReportJson: null,
+    geminiReportStatus: null,
+    geminiReportMessage: null,
     scanFileKey: "cases/KC-UPLOAD-001/study.png",
     scanFileName: "study.png",
     scanMimeType: "image/png",
@@ -47,5 +51,36 @@ describe("persistedCaseToWorkspaceCase", () => {
       oaClassificationJson: JSON.stringify({ stageLabel: "ModerateOA", topClassProbability: 0.6, stageProbabilities: { Normal: 0.1, MildOA: 0.2, ModerateOA: 0.6, SevereOA: 0.1 } }),
     });
     expect(result.oaClassifierResult).toMatchObject({ stageLabel: "ModerateOA", topClassProbability: 0.6 });
+  });
+
+  it("parses a stored report extraction separately from image-model outputs", () => {
+    const result = persistedCaseToWorkspaceCase({
+      ...baseCase,
+      analysisStatus: "ready_for_review",
+      geminiReportModel: "gemini-2.5-flash",
+      geminiReportStatus: "extracted_for_review",
+      geminiReportMessage: "Report extraction complete.",
+      geminiReportJson: JSON.stringify({
+        summary: "Report summary.", oaMention: "reported", oaSeverity: "mild", femurFinding: null, tibiaFinding: null,
+        medialMeniscusFinding: "Extrusion reported.", femoralWidthMm: null, femoralApMm: null, tibialWidthMm: null, tibialApMm: null,
+        medialMeniscusAnteriorMm: null, medialMeniscusBodyMm: null, medialMeniscusPosteriorMm: null, citedReportPhrases: ["Mild OA"], reviewNote: "Verify clinically.",
+      }),
+    });
+    expect(result.geminiReportResult).toMatchObject({ model: "gemini-2.5-flash", oaMention: "reported", medialMeniscusFinding: "Extrusion reported." });
+    expect(result.geminiReportState).toEqual({ status: "extracted_for_review", message: "Report extraction complete." });
+  });
+
+  it("keeps a non-report extraction state visible without fabricating report findings", () => {
+    const result = persistedCaseToWorkspaceCase({
+      ...baseCase,
+      analysisStatus: "review_required",
+      geminiReportStatus: "not_a_report",
+      geminiReportMessage: "The uploaded file was not recognised as a readable knee radiology report.",
+    });
+    expect(result.geminiReportResult).toBeNull();
+    expect(result.geminiReportState).toEqual({
+      status: "not_a_report",
+      message: "The uploaded file was not recognised as a readable knee radiology report.",
+    });
   });
 });
