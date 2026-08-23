@@ -92,3 +92,6 @@
 - [x] Remove Current Model Output, Gemini Report Extraction, and Anatomy Measurement Model cards from the visible measurement workflow.
 - [x] Replace illustrative Home dashboard case records and metrics with the real empty or persisted case workspace.
 - [x] Replace illustrative Previous Cases records with the real persisted closed-case archive after the workspace reset.
+- [x] Remove segmentation controls and all associated unavailable-overlay messaging from Knee Analysis.
+- [x] Remove the Clinical Context tab and page content from Knee Analysis.
+- [x] Present Gemini visual OA assessment, anatomy descriptors, and rough image-derived measurements in a focused primary review panel.
