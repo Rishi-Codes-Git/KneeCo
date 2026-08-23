@@ -34,6 +34,8 @@ describe("implant planning", () => {
 
     expect(result).toMatchObject({ eligible: true, dimensions, planningStatus: "ready_for_review" });
     expect(result.rankings[0]).toMatchObject({ rank: 1, femoralSize: "M", tibialSize: "S" });
+    expect(result.rankings[0].referenceDimensions).toEqual(dimensions);
+    expect(result.rankings[0].dimensionDeltasMm).toEqual({ femoralApMm: 0, femoralWidthMm: 0, tibialApMm: 0, tibialWidthMm: 0 });
     expect(upsertImplantPlan).toHaveBeenCalledWith(expect.objectContaining({ caseReference: "KC-ELIGIBLE", planningStatus: "ready_for_review" }));
   });
 

@@ -101,21 +101,30 @@ function extractText(response: unknown) {
   return payload.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
 }
 
+type PlanningDimensions = { femoralApMm?: number; femoralWidthMm?: number; tibialApMm?: number; tibialWidthMm?: number };
+
 function createSyntheticPresentationReview(record: {
   imageId: string;
   syntheticOaStatus: "present" | "absent";
   syntheticClass: string;
+  syntheticDimensionsJson: string | null;
   simulatedPlanJson: string;
 }): GeminiVisualReview {
   const plan = JSON.parse(record.simulatedPlanJson) as Record<string, unknown>;
   const isPositive = record.syntheticOaStatus === "present";
+  let planningDimensions: PlanningDimensions | null = null;
+  try {
+    planningDimensions = record.syntheticDimensionsJson ? JSON.parse(record.syntheticDimensionsJson) as PlanningDimensions : null;
+  } catch {
+    planningDimensions = null;
+  }
   const asNullableText = (value: unknown) => typeof value === "string" ? value : null;
   const asNullableNumber = (value: unknown) => typeof value === "number" ? value : null;
   const simulatedPlan = {
-    procedure: String(plan.procedure),
-    systemId: String(plan.system_id),
-    femoralComponent: asNullableText(plan.femoral_component),
-    tibialTray: asNullableText(plan.tibial_tray),
+    procedure: "Total knee arthroplasty planning",
+    systemId: "KneeCo TKA planning reference",
+    femoralComponent: "Femoral component — Size 3",
+    tibialTray: "Tibial tray — Size 3",
     polyethyleneInsertThicknessMm: asNullableNumber(plan.polyethylene_insert_thickness_mm),
     patellarDiameterMm: asNullableNumber(plan.patellar_diameter_mm),
     patellarThicknessMm: asNullableNumber(plan.patellar_thickness_mm),
@@ -133,7 +142,16 @@ function createSyntheticPresentationReview(record: {
     femur: { visibility: "visible", visualDescriptor: "Visible in the supplied sagittal MRI-style presentation image." },
     tibia: { visibility: "visible", visualDescriptor: "Visible in the supplied sagittal MRI-style presentation image." },
     medialMeniscus: { visibility: "partly_visible", visualDescriptor: "Meniscal region is visible in the supplied sagittal MRI-style presentation image." },
-    roughEstimates: { scaleDetected: true, femoralWidthMm: null, femoralApMm: null, tibialWidthMm: null, tibialApMm: null, medialMeniscusAnteriorMm: null, medialMeniscusBodyMm: null, medialMeniscusPosteriorMm: null },
+    roughEstimates: {
+      scaleDetected: true,
+      femoralWidthMm: planningDimensions?.femoralWidthMm ?? null,
+      femoralApMm: planningDimensions?.femoralApMm ?? null,
+      tibialWidthMm: planningDimensions?.tibialWidthMm ?? null,
+      tibialApMm: planningDimensions?.tibialApMm ?? null,
+      medialMeniscusAnteriorMm: null,
+      medialMeniscusBodyMm: null,
+      medialMeniscusPosteriorMm: null,
+    },
     oaVisualAssessment: {
       status: isPositive ? "features_present" : "features_not_apparent",
       descriptor: isPositive ? "OA-associated features are available for planning review." : "OA-associated features are not available for implant planning review.",

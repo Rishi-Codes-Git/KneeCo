@@ -110,3 +110,7 @@
 - [x] Replace visible synthetic and simulated wording with standard KneeCo assessment and implant-planning language while retaining background eligibility controls.
 - [x] Remove all visible Presentation Test Case wording and use standard KneeCo assessment and implant-planning language while retaining background eligibility controls.
 - [x] Add editable, persisted workspace preferences to Settings for review and notification behavior.
+- [x] Reload the currently supplied structured knee implant sizing dataset into the anonymous ranking catalogue.
+- [x] Populate the four image-derived Knee Analysis values from the eligible planning dimensions used for implant reference ranking.
+- [x] Add detailed pop-up views for each ranked implant reference arrow in Implant Analysis.
+- [x] Replace simulated-looking system, component, and procedure identifiers in visible planning values with standard KneeCo planning terminology.

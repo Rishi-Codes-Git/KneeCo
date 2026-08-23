@@ -52,7 +52,7 @@ describe("seeded presentation filename upload", () => {
     expect(getPresentationTestCaseByFileName).toHaveBeenCalledWith("F001_Female.png");
     const persisted = createKneeCase.mock.calls[0][0];
     const mapped = persistedCaseToWorkspaceCase({ ...persisted, updatedAt: new Date() });
-    expect(mapped.geminiVisualReview?.presentationTestOutput).toMatchObject({ simulationStatus: "simulated_not_clinical", imageId: "F001", simulatedPlan: { systemId: "SIM-TEST" } });
+    expect(mapped.geminiVisualReview?.presentationTestOutput).toMatchObject({ simulationStatus: "simulated_not_clinical", imageId: "F001", simulatedPlan: { systemId: "KneeCo TKA planning reference" } });
     expect(mapped.geminiVisualReview?.reviewNote).toContain("clinician confirmation");
   });
 });

@@ -13,6 +13,8 @@ export type RankedImplantReference = {
   tibialSize: string;
   dimensionalProximityScore: number;
   normalizedRmsError: number;
+  referenceDimensions: ImplantDimensions;
+  dimensionDeltasMm: ImplantDimensions;
 };
 
 export type ImplantPlanningResult = {
@@ -45,12 +47,25 @@ function rankCatalogue(dimensions: ImplantDimensions, catalogue: Awaited<ReturnT
       (row.tibialWidthMm - dimensions.tibialWidthMm) / dimensions.tibialWidthMm,
     ];
     const normalizedRmsError = Math.sqrt(terms.reduce((sum, term) => sum + term * term, 0) / terms.length);
+    const referenceDimensions = {
+      femoralApMm: row.femoralApMm,
+      femoralWidthMm: row.femoralWidthMm,
+      tibialApMm: row.tibialApMm,
+      tibialWidthMm: row.tibialWidthMm,
+    };
     return {
       rank: 0,
       femoralSize: row.suggestedFemoralSize,
       tibialSize: row.suggestedTibialSize,
       dimensionalProximityScore: Math.max(0, Math.round((1 - normalizedRmsError) * 1000) / 10),
       normalizedRmsError: Math.round(normalizedRmsError * 10_000) / 10_000,
+      referenceDimensions,
+      dimensionDeltasMm: {
+        femoralApMm: Math.round((referenceDimensions.femoralApMm - dimensions.femoralApMm) * 10) / 10,
+        femoralWidthMm: Math.round((referenceDimensions.femoralWidthMm - dimensions.femoralWidthMm) * 10) / 10,
+        tibialApMm: Math.round((referenceDimensions.tibialApMm - dimensions.tibialApMm) * 10) / 10,
+        tibialWidthMm: Math.round((referenceDimensions.tibialWidthMm - dimensions.tibialWidthMm) * 10) / 10,
+      },
     };
   }).sort((left, right) => left.normalizedRmsError - right.normalizedRmsError).slice(0, 3).map((candidate, index) => ({ ...candidate, rank: index + 1 }));
 }
