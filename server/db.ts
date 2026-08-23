@@ -1,6 +1,6 @@
 import { desc, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { clinicianProfiles, InsertClinicianProfile, InsertKneeCase, InsertUser, kneeCases, users } from "../drizzle/schema";
+import { clinicianProfiles, InsertClinicianProfile, InsertKneeCase, InsertUser, kneeCases, presentationTestCases, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -131,6 +131,13 @@ export async function deleteKneeCaseByReference(caseReference: string) {
   if (!db) throw new Error("Database is not available for case deletion");
   const result = await db.delete(kneeCases).where(eq(kneeCases.caseReference, caseReference));
   return result[0].affectedRows > 0;
+}
+
+export async function getPresentationTestCaseByFileName(fileName: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [presentationTestCase] = await db.select().from(presentationTestCases).where(eq(presentationTestCases.fileName, fileName)).limit(1);
+  return presentationTestCase;
 }
 
 // TODO: add feature queries here as your schema grows.

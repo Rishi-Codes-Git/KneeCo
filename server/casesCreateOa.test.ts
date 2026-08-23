@@ -34,6 +34,7 @@ vi.mock("./storage", () => ({ storagePut }));
 
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
+import { persistedCaseToWorkspaceCase } from "../client/src/lib/persistedCase";
 
 describe("cases.create with OA classifier output", () => {
   beforeEach(() => {
@@ -140,5 +141,33 @@ describe("cases.create with OA classifier output", () => {
 
     await expect(caller.cases.delete({ caseReference: "KC-REMOVE" })).resolves.toEqual({ deleted: true });
     expect(deleteKneeCaseByReference).toHaveBeenCalledWith("KC-REMOVE");
+  });
+
+  it("persists and maps an explicitly non-clinical structured presentation output for the clinician interface", async () => {
+    storagePut.mockResolvedValue({ key: "cases/KC-PRESENTATION/study.png", url: "/manus-storage/cases/KC-PRESENTATION/study.png" });
+    requestStudyPreflight.mockResolvedValue({ configured: false, completed: false, analysisStatus: "pending_validation", safeMessage: "Preflight pending." });
+    requestOaClassification.mockResolvedValue({ completed: false, analysisStatus: "pending_validation", modelName: null, modelVersion: null, classification: null, safeMessage: "Classifier pending." });
+    extractGeminiMriReport.mockResolvedValue({ completed: false, status: "not_a_report", model: null, extraction: null, safeMessage: "No report." });
+    reviewGeminiMriImage.mockResolvedValue({
+      completed: true, status: "visible_for_review", model: "KneeCo presentation test record", safeMessage: "Synthetic presentation-test output loaded.",
+      review: {
+        studyType: "knee_mri_image", imageQuality: "sufficient_for_visual_review",
+        femur: { visibility: "visible", visualDescriptor: "Visible." }, tibia: { visibility: "visible", visualDescriptor: "Visible." }, medialMeniscus: { visibility: "partly_visible", visualDescriptor: "Partly visible." },
+        roughEstimates: { scaleDetected: true, femoralWidthMm: null, femoralApMm: null, tibialWidthMm: null, tibialApMm: null, medialMeniscusAnteriorMm: null, medialMeniscusBodyMm: null, medialMeniscusPosteriorMm: null },
+        oaVisualAssessment: { status: "features_present", descriptor: "Synthetic assignment." },
+        implantPlanning: { status: "candidate_sizing_preview", candidateSizeBand: "small", rationale: "Synthetic only." },
+        presentationTestOutput: { simulationStatus: "simulated_not_clinical", imageId: "TEST-001", syntheticClass: "Synthetic positive", syntheticOaStatus: "present", simulatedPlan: { procedure: "Synthetic procedure", systemId: "SIM-TEST", femoralComponent: "SIM-FEM", tibialTray: "SIM-TIB", polyethyleneInsertThicknessMm: 10, patellarDiameterMm: 32, patellarThicknessMm: 8, femoralResectionMm: 9, tibialResectionMm: 9, jointLineAdjustmentMm: 0, fixation: "synthetic" } },
+        reviewNote: "Synthetic presentation-test output. It is not a medical diagnosis.",
+      },
+    });
+    createKneeCase.mockResolvedValue(undefined);
+
+    const caller = appRouter.createCaller({} as TrpcContext);
+    await caller.cases.create({ patientId: "PT-PRESENTATION", patientName: "Presentation Test", age: 40, sex: "female", oaStatus: "unknown", kneeSide: "right", scan: { fileName: "presentation-input.png", contentType: "image/png", sizeBytes: 3, contentBase64: "YWJj" } });
+
+    const persisted = createKneeCase.mock.calls[0][0];
+    const mapped = persistedCaseToWorkspaceCase({ ...persisted, updatedAt: new Date() });
+    expect(mapped.geminiVisualReview?.presentationTestOutput).toMatchObject({ simulationStatus: "simulated_not_clinical", imageId: "TEST-001", simulatedPlan: { systemId: "SIM-TEST" } });
+    expect(mapped.geminiVisualReview?.reviewNote).toContain("not a medical diagnosis");
   });
 });

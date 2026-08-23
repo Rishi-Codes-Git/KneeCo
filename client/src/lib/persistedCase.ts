@@ -74,6 +74,7 @@ export function persistedCaseToWorkspaceCase(kneeCase: PersistedKneeCase): Illus
           roughEstimates: parsed.roughEstimates,
           oaVisualAssessment: parsed.oaVisualAssessment,
           implantPlanning: parsed.implantPlanning,
+          presentationTestOutput: parsed.presentationTestOutput?.simulationStatus === "simulated_not_clinical" ? parsed.presentationTestOutput : undefined,
           reviewNote: parsed.reviewNote,
         };
       }

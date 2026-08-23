@@ -66,6 +66,25 @@ export type IllustrativeCase = {
     };
     oaVisualAssessment: { status: "features_not_apparent" | "features_possible" | "features_present" | "not_assessable"; descriptor: string };
     implantPlanning: { status: "not_triggered" | "candidate_sizing_preview"; candidateSizeBand: "small" | "medium" | "large" | "not_available"; rationale: string };
+    presentationTestOutput?: {
+      simulationStatus: "simulated_not_clinical";
+      imageId: string;
+      syntheticClass: string;
+      syntheticOaStatus: "present" | "absent";
+      simulatedPlan: {
+        procedure: string;
+        systemId: string;
+        femoralComponent: string | null;
+        tibialTray: string | null;
+        polyethyleneInsertThicknessMm: number | null;
+        patellarDiameterMm: number | null;
+        patellarThicknessMm: number | null;
+        femoralResectionMm: number | null;
+        tibialResectionMm: number | null;
+        jointLineAdjustmentMm: number | null;
+        fixation: string | null;
+      };
+    };
     reviewNote: string;
   } | null;
   geminiVisualState?: {

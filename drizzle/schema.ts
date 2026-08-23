@@ -59,9 +59,27 @@ export const kneeCases = mysqlTable("kneeCases", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 
+/** Private filename-keyed synthetic records for presentation testing; never clinical patient data. */
+export const presentationTestCases = mysqlTable("presentationTestCases", {
+  id: int("id").autoincrement().primaryKey(),
+  fileName: varchar("fileName", { length: 255 }).notNull().unique(),
+  imageId: varchar("imageId", { length: 80 }).notNull().unique(),
+  age: int("age").notNull(),
+  sex: mysqlEnum("sex", ["female", "male"]).notNull(),
+  weightKg: int("weightKg").notNull(),
+  syntheticOaStatus: mysqlEnum("syntheticOaStatus", ["present", "absent"]).notNull(),
+  syntheticClass: varchar("syntheticClass", { length: 80 }).notNull(),
+  simulatedPlanJson: text("simulatedPlanJson").notNull(),
+  simulationStatus: mysqlEnum("simulationStatus", ["simulated_not_clinical"]).default("simulated_not_clinical").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 export type ClinicianProfile = typeof clinicianProfiles.$inferSelect;
 export type InsertClinicianProfile = typeof clinicianProfiles.$inferInsert;
 export type KneeCase = typeof kneeCases.$inferSelect;
 export type InsertKneeCase = typeof kneeCases.$inferInsert;
+export type PresentationTestCase = typeof presentationTestCases.$inferSelect;
+export type InsertPresentationTestCase = typeof presentationTestCases.$inferInsert;

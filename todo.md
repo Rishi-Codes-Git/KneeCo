@@ -96,3 +96,9 @@
 - [x] Remove the Clinical Context tab and page content from Knee Analysis.
 - [x] Present Gemini visual OA assessment, anatomy descriptors, and rough image-derived measurements in a focused primary review panel.
 - [x] Remove visible third-party provider naming from the Knee Analysis workflow and replace it with KneeCo assessment language.
+- [x] Add a separate database-backed synthetic presentation test-case mapping for the four supplied filename-keyed MRI examples.
+- [x] Add a deterministic, explicitly simulated upload lookup for only the four supplied presentation test filenames.
+- [x] Surface the seeded synthetic dataset classification and simulated planning values as structured, explicitly non-clinical case output for the four presentation filenames.
+- [x] Add an end-to-end creation test for a seeded presentation filename that verifies the persisted UI-facing synthetic output.
+- [x] Add an in-repository case-creation regression test that verifies the mapped structured synthetic output and explicit non-clinical label for a seeded presentation filename.
+- [x] Add an in-repository regression test that exercises the real filename-keyed presentation lookup for an actual seeded presentation filename.

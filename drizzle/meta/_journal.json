@@ -50,6 +50,13 @@
       "when": 1787448997098,
       "tag": "0006_thin_doomsday",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1787452539064,
+      "tag": "0007_next_ronan",
+      "breakpoints": true
     }
   ]
 }

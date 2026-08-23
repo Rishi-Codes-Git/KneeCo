@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getPresentationTestCaseByFileName } from "./db";
 
 export type GeminiVisualReviewInput = {
   caseId: string;
@@ -25,6 +26,25 @@ export type GeminiVisualReview = {
   };
   oaVisualAssessment: { status: "features_not_apparent" | "features_possible" | "features_present" | "not_assessable"; descriptor: string };
   implantPlanning: { status: "not_triggered" | "candidate_sizing_preview"; candidateSizeBand: "small" | "medium" | "large" | "not_available"; rationale: string };
+  presentationTestOutput?: {
+    simulationStatus: "simulated_not_clinical";
+    imageId: string;
+    syntheticClass: string;
+    syntheticOaStatus: "present" | "absent";
+    simulatedPlan: {
+      procedure: string;
+      systemId: string;
+      femoralComponent: string | null;
+      tibialTray: string | null;
+      polyethyleneInsertThicknessMm: number | null;
+      patellarDiameterMm: number | null;
+      patellarThicknessMm: number | null;
+      femoralResectionMm: number | null;
+      tibialResectionMm: number | null;
+      jointLineAdjustmentMm: number | null;
+      fixation: string | null;
+    };
+  };
   reviewNote: string;
 };
 
@@ -81,9 +101,66 @@ function extractText(response: unknown) {
   return payload.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") ?? "";
 }
 
+function createSyntheticPresentationReview(record: {
+  imageId: string;
+  syntheticOaStatus: "present" | "absent";
+  syntheticClass: string;
+  simulatedPlanJson: string;
+}): GeminiVisualReview {
+  const plan = JSON.parse(record.simulatedPlanJson) as Record<string, unknown>;
+  const isPositive = record.syntheticOaStatus === "present";
+  const asNullableText = (value: unknown) => typeof value === "string" ? value : null;
+  const asNullableNumber = (value: unknown) => typeof value === "number" ? value : null;
+  const simulatedPlan = {
+    procedure: String(plan.procedure),
+    systemId: String(plan.system_id),
+    femoralComponent: asNullableText(plan.femoral_component),
+    tibialTray: asNullableText(plan.tibial_tray),
+    polyethyleneInsertThicknessMm: asNullableNumber(plan.polyethylene_insert_thickness_mm),
+    patellarDiameterMm: asNullableNumber(plan.patellar_diameter_mm),
+    patellarThicknessMm: asNullableNumber(plan.patellar_thickness_mm),
+    femoralResectionMm: asNullableNumber(plan.femoral_resection_mm),
+    tibialResectionMm: asNullableNumber(plan.tibial_resection_mm),
+    jointLineAdjustmentMm: asNullableNumber(plan.joint_line_adjustment_mm),
+    fixation: asNullableText(plan.fixation),
+  };
+  const planText = isPositive
+    ? `SIMULATED TEST OUTPUT — ${simulatedPlan.systemId}; ${simulatedPlan.femoralComponent}; ${simulatedPlan.tibialTray}; insert ${simulatedPlan.polyethyleneInsertThicknessMm} mm; patella ${simulatedPlan.patellarDiameterMm} mm × ${simulatedPlan.patellarThicknessMm} mm; femoral resection ${simulatedPlan.femoralResectionMm} mm; tibial resection ${simulatedPlan.tibialResectionMm} mm; joint-line adjustment ${simulatedPlan.jointLineAdjustmentMm} mm; ${simulatedPlan.fixation} fixation.`
+    : "SIMULATED TEST OUTPUT — no implant planned; component sizes and millimetre values are N/A for this synthetic OA-absent case.";
+  return {
+    studyType: "knee_mri_image",
+    imageQuality: "sufficient_for_visual_review",
+    femur: { visibility: "visible", visualDescriptor: "Visible in the supplied sagittal MRI-style presentation image." },
+    tibia: { visibility: "visible", visualDescriptor: "Visible in the supplied sagittal MRI-style presentation image." },
+    medialMeniscus: { visibility: "partly_visible", visualDescriptor: "Meniscal region is visible in the supplied sagittal MRI-style presentation image." },
+    roughEstimates: { scaleDetected: true, femoralWidthMm: null, femoralApMm: null, tibialWidthMm: null, tibialApMm: null, medialMeniscusAnteriorMm: null, medialMeniscusBodyMm: null, medialMeniscusPosteriorMm: null },
+    oaVisualAssessment: {
+      status: isPositive ? "features_present" : "features_not_apparent",
+      descriptor: isPositive ? "Synthetic OA-positive presentation assignment." : "Synthetic OA-negative presentation assignment.",
+    },
+    implantPlanning: {
+      status: isPositive ? "candidate_sizing_preview" : "not_triggered",
+      candidateSizeBand: isPositive ? (record.imageId.startsWith("M") ? "medium" : "small") : "not_available",
+      rationale: planText,
+    },
+    presentationTestOutput: { simulationStatus: "simulated_not_clinical", imageId: record.imageId, syntheticClass: record.syntheticClass, syntheticOaStatus: record.syntheticOaStatus, simulatedPlan },
+    reviewNote: "Synthetic presentation-test output. It is not a medical diagnosis, calibrated measurement, or surgical plan.",
+  };
+}
+
 export async function reviewGeminiMriImage(input: GeminiVisualReviewInput, fetchImpl: typeof fetch = fetch): Promise<GeminiVisualReviewResult> {
   if (!input.contentType.startsWith("image/")) {
     return { completed: false, status: "not_an_image", model: null, review: null, safeMessage: "Gemini visual review applies to uploaded image studies. This PDF can still be processed as a readable radiology report." };
+  }
+  const presentationRecord = await getPresentationTestCaseByFileName(input.fileName);
+  if (presentationRecord) {
+    return {
+      completed: true,
+      status: "visible_for_review",
+      model: "KneeCo presentation test record",
+      review: createSyntheticPresentationReview(presentationRecord),
+      safeMessage: "Synthetic presentation-test output loaded. It is not a clinical result.",
+    };
   }
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {

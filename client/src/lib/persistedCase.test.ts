@@ -109,4 +109,24 @@ describe("persistedCaseToWorkspaceCase", () => {
     expect(result.geminiVisualReview?.roughEstimates).toMatchObject({ scaleDetected: true, femoralWidthMm: 72, tibialWidthMm: 70 });
     expect(result.geminiVisualReview?.implantPlanning.status).toBe("not_triggered");
   });
+
+  it("maps a structured explicitly non-clinical presentation output for the analysis interface", () => {
+    const result = persistedCaseToWorkspaceCase({
+      ...baseCase,
+      geminiVisualModel: "KneeCo presentation test record",
+      geminiVisualStatus: "visible_for_review",
+      geminiVisualMessage: "Synthetic presentation-test output loaded.",
+      geminiVisualJson: JSON.stringify({
+        studyType: "knee_mri_image", imageQuality: "sufficient_for_visual_review",
+        femur: { visibility: "visible", visualDescriptor: "Visible." }, tibia: { visibility: "visible", visualDescriptor: "Visible." }, medialMeniscus: { visibility: "partly_visible", visualDescriptor: "Partly visible." },
+        roughEstimates: { scaleDetected: true, femoralWidthMm: null, femoralApMm: null, tibialWidthMm: null, tibialApMm: null, medialMeniscusAnteriorMm: null, medialMeniscusBodyMm: null, medialMeniscusPosteriorMm: null },
+        oaVisualAssessment: { status: "features_present", descriptor: "Synthetic assignment." },
+        implantPlanning: { status: "candidate_sizing_preview", candidateSizeBand: "small", rationale: "Synthetic only." },
+        presentationTestOutput: { simulationStatus: "simulated_not_clinical", imageId: "TEST-001", syntheticClass: "Synthetic positive", syntheticOaStatus: "present", simulatedPlan: { procedure: "Synthetic procedure", systemId: "SIM-TEST", femoralComponent: "SIM-FEM", tibialTray: "SIM-TIB", polyethyleneInsertThicknessMm: 10, patellarDiameterMm: 32, patellarThicknessMm: 8, femoralResectionMm: 9, tibialResectionMm: 9, jointLineAdjustmentMm: 0, fixation: "synthetic" } },
+        reviewNote: "Synthetic presentation-test output.",
+      }),
+    });
+
+    expect(result.geminiVisualReview?.presentationTestOutput).toMatchObject({ simulationStatus: "simulated_not_clinical", imageId: "TEST-001", simulatedPlan: { systemId: "SIM-TEST", tibialTray: "SIM-TIB" } });
+  });
 });
