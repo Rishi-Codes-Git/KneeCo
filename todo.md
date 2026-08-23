@@ -127,4 +127,4 @@
 - [x] Replace the primitive conceptual 3D scene with detailed anatomy and implant mesh assets for a credible generic planning visualization.
 - [x] Inspect and integrate the supplied anatomical knee GLB as the detailed anatomy layer for the 3D planning viewer.
 - [x] Source, license-check, and integrate a generic total-knee implant mesh to accompany the supplied anatomy model.
-- [ ] Commit and push the verified detailed 3D viewer updates to the connected KneeCo GitHub repository.
+- [x] Commit and push the verified detailed 3D viewer updates to the connected KneeCo GitHub repository.
